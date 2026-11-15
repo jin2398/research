@@ -1,0 +1,11 @@
+.venv
+**/__pycache__
+.pytest_cache
+.git
+data
+artifacts
+docs
+tests
+*.bat
+.DS_Store
+Icon*

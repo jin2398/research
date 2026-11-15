@@ -1,0 +1,13 @@
+{
+  "model_version": "v1.0",
+  "last_trained_log_count": 0,
+  "last_observed_log_count": 0,
+  "new_logs_since_training": 0,
+  "hit_rate": null,
+  "training_due": false,
+  "training_error": null,
+  "alerts": [
+    "Initialized CT baseline at 0 existing rows."
+  ],
+  "checked_at_utc": "2026-10-14T09:56:52.919605+00:00"
+}

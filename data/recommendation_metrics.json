@@ -1,0 +1,8 @@
+{
+  "recall_at_300": 0.2315,
+  "auc": 0.7482,
+  "hit_rate_at_50": 0.2703,
+  "ndcg_at_50": 0.0243,
+  "coverage": 0.2759,
+  "_source": "docs\\stage12_eval.json (measured 2026-11-12T21:51:18, lists = two_tower+deepfm+stage3)"
+}

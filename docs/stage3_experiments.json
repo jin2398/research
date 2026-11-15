@@ -1,0 +1,559 @@
+{
+  "setup": {
+    "users": 8054,
+    "k": 50,
+    "candidate_size": 300,
+    "snapshot": "2025-03-22 23:59:59",
+    "random_seed": 42
+  },
+  "coverage_grid": [
+    {
+      "source": "popularity",
+      "exploration_slots": 1,
+      "exploration_pool_size": 50,
+      "session_weight": 0.3,
+      "hit_rate_at_50": 0.1018,
+      "ndcg_at_50": 0.0082,
+      "coverage": 0.0373
+    },
+    {
+      "source": "popularity",
+      "exploration_slots": 1,
+      "exploration_pool_size": 50,
+      "session_weight": 0.6,
+      "hit_rate_at_50": 0.1152,
+      "ndcg_at_50": 0.0092,
+      "coverage": 0.0375
+    },
+    {
+      "source": "popularity",
+      "exploration_slots": 1,
+      "exploration_pool_size": 500,
+      "session_weight": 0.3,
+      "hit_rate_at_50": 0.1018,
+      "ndcg_at_50": 0.0082,
+      "coverage": 0.0587
+    },
+    {
+      "source": "popularity",
+      "exploration_slots": 1,
+      "exploration_pool_size": 500,
+      "session_weight": 0.6,
+      "hit_rate_at_50": 0.115,
+      "ndcg_at_50": 0.0091,
+      "coverage": 0.0587
+    },
+    {
+      "source": "popularity",
+      "exploration_slots": 1,
+      "exploration_pool_size": 5000,
+      "session_weight": 0.3,
+      "hit_rate_at_50": 0.1018,
+      "ndcg_at_50": 0.0082,
+      "coverage": 0.0593
+    },
+    {
+      "source": "popularity",
+      "exploration_slots": 1,
+      "exploration_pool_size": 5000,
+      "session_weight": 0.6,
+      "hit_rate_at_50": 0.115,
+      "ndcg_at_50": 0.0091,
+      "coverage": 0.0596
+    },
+    {
+      "source": "popularity",
+      "exploration_slots": 2,
+      "exploration_pool_size": 50,
+      "session_weight": 0.3,
+      "hit_rate_at_50": 0.1018,
+      "ndcg_at_50": 0.0081,
+      "coverage": 0.0433
+    },
+    {
+      "source": "popularity",
+      "exploration_slots": 2,
+      "exploration_pool_size": 50,
+      "session_weight": 0.6,
+      "hit_rate_at_50": 0.113,
+      "ndcg_at_50": 0.0089,
+      "coverage": 0.0441
+    },
+    {
+      "source": "popularity",
+      "exploration_slots": 2,
+      "exploration_pool_size": 500,
+      "session_weight": 0.3,
+      "hit_rate_at_50": 0.1013,
+      "ndcg_at_50": 0.0081,
+      "coverage": 0.096
+    },
+    {
+      "source": "popularity",
+      "exploration_slots": 2,
+      "exploration_pool_size": 500,
+      "session_weight": 0.6,
+      "hit_rate_at_50": 0.1127,
+      "ndcg_at_50": 0.0089,
+      "coverage": 0.0954
+    },
+    {
+      "source": "popularity",
+      "exploration_slots": 2,
+      "exploration_pool_size": 5000,
+      "session_weight": 0.3,
+      "hit_rate_at_50": 0.1017,
+      "ndcg_at_50": 0.0081,
+      "coverage": 0.1008
+    },
+    {
+      "source": "popularity",
+      "exploration_slots": 2,
+      "exploration_pool_size": 5000,
+      "session_weight": 0.6,
+      "hit_rate_at_50": 0.1129,
+      "ndcg_at_50": 0.0089,
+      "coverage": 0.1008
+    },
+    {
+      "source": "session_knn",
+      "exploration_slots": 1,
+      "exploration_pool_size": 50,
+      "session_weight": 0.3,
+      "hit_rate_at_50": 0.049,
+      "ndcg_at_50": 0.0027,
+      "coverage": 0.0571
+    },
+    {
+      "source": "session_knn",
+      "exploration_slots": 1,
+      "exploration_pool_size": 50,
+      "session_weight": 0.6,
+      "hit_rate_at_50": 0.049,
+      "ndcg_at_50": 0.0027,
+      "coverage": 0.0571
+    },
+    {
+      "source": "session_knn",
+      "exploration_slots": 1,
+      "exploration_pool_size": 500,
+      "session_weight": 0.3,
+      "hit_rate_at_50": 0.049,
+      "ndcg_at_50": 0.0027,
+      "coverage": 0.0764
+    },
+    {
+      "source": "session_knn",
+      "exploration_slots": 1,
+      "exploration_pool_size": 500,
+      "session_weight": 0.6,
+      "hit_rate_at_50": 0.049,
+      "ndcg_at_50": 0.0027,
+      "coverage": 0.0764
+    },
+    {
+      "source": "session_knn",
+      "exploration_slots": 1,
+      "exploration_pool_size": 5000,
+      "session_weight": 0.3,
+      "hit_rate_at_50": 0.0489,
+      "ndcg_at_50": 0.0027,
+      "coverage": 0.0768
+    },
+    {
+      "source": "session_knn",
+      "exploration_slots": 1,
+      "exploration_pool_size": 5000,
+      "session_weight": 0.6,
+      "hit_rate_at_50": 0.0489,
+      "ndcg_at_50": 0.0027,
+      "coverage": 0.0768
+    },
+    {
+      "source": "session_knn",
+      "exploration_slots": 2,
+      "exploration_pool_size": 50,
+      "session_weight": 0.3,
+      "hit_rate_at_50": 0.0479,
+      "ndcg_at_50": 0.0026,
+      "coverage": 0.0659
+    },
+    {
+      "source": "session_knn",
+      "exploration_slots": 2,
+      "exploration_pool_size": 50,
+      "session_weight": 0.6,
+      "hit_rate_at_50": 0.0479,
+      "ndcg_at_50": 0.0026,
+      "coverage": 0.0659
+    },
+    {
+      "source": "session_knn",
+      "exploration_slots": 2,
+      "exploration_pool_size": 500,
+      "session_weight": 0.3,
+      "hit_rate_at_50": 0.0478,
+      "ndcg_at_50": 0.0026,
+      "coverage": 0.1166
+    },
+    {
+      "source": "session_knn",
+      "exploration_slots": 2,
+      "exploration_pool_size": 500,
+      "session_weight": 0.6,
+      "hit_rate_at_50": 0.0478,
+      "ndcg_at_50": 0.0026,
+      "coverage": 0.1166
+    },
+    {
+      "source": "session_knn",
+      "exploration_slots": 2,
+      "exploration_pool_size": 5000,
+      "session_weight": 0.3,
+      "hit_rate_at_50": 0.0484,
+      "ndcg_at_50": 0.0027,
+      "coverage": 0.12
+    },
+    {
+      "source": "session_knn",
+      "exploration_slots": 2,
+      "exploration_pool_size": 5000,
+      "session_weight": 0.6,
+      "hit_rate_at_50": 0.0484,
+      "ndcg_at_50": 0.0027,
+      "coverage": 0.12
+    }
+  ],
+  "bandit_simulation": {
+    "rounds_users": 8054,
+    "candidate_source": "popularity",
+    "reward": "1 if the user touched any item of the explored category in the test period",
+    "oracle_best_fixed_arm": {
+      "category": "Dress",
+      "reward_rate": 0.3213
+    },
+    "algorithms": {
+      "random": {
+        "hit_rate_at_50": 0.1042,
+        "coverage": 0.0584,
+        "pulls": 8054,
+        "reward_rate": 0.035,
+        "reward_rate_first_half": 0.0407,
+        "reward_rate_second_half": 0.0293,
+        "regret_vs_best_fixed_arm": 2306.0,
+        "item_level_hits": 0,
+        "arms_tried": 101,
+        "top_arms": [
+          {
+            "category": "Bucket hat",
+            "pulls": 104,
+            "mean_reward": 0.0
+          },
+          {
+            "category": "Scarf",
+            "pulls": 103,
+            "mean_reward": 0.078
+          },
+          {
+            "category": "Wood balls",
+            "pulls": 101,
+            "mean_reward": 0.0
+          },
+          {
+            "category": "Marker pen",
+            "pulls": 99,
+            "mean_reward": 0.0
+          },
+          {
+            "category": "Robe",
+            "pulls": 99,
+            "mean_reward": 0.01
+          }
+        ]
+      },
+      "epsilon_greedy_0.1": {
+        "hit_rate_at_50": 0.1049,
+        "coverage": 0.0222,
+        "pulls": 8054,
+        "reward_rate": 0.2786,
+        "reward_rate_first_half": 0.2923,
+        "reward_rate_second_half": 0.265,
+        "regret_vs_best_fixed_arm": 344.0,
+        "item_level_hits": 6,
+        "arms_tried": 101,
+        "top_arms": [
+          {
+            "category": "Dress",
+            "pulls": 6553,
+            "mean_reward": 0.319
+          },
+          {
+            "category": "T-shirt",
+            "pulls": 697,
+            "mean_reward": 0.207
+          },
+          {
+            "category": "Beanie",
+            "pulls": 15,
+            "mean_reward": 0.0
+          },
+          {
+            "category": "Braces",
+            "pulls": 14,
+            "mean_reward": 0.0
+          },
+          {
+            "category": "Earring",
+            "pulls": 14,
+            "mean_reward": 0.143
+          }
+        ]
+      },
+      "ucb_c1.0": {
+        "hit_rate_at_50": 0.1044,
+        "coverage": 0.0659,
+        "pulls": 8054,
+        "reward_rate": 0.1021,
+        "reward_rate_first_half": 0.0849,
+        "reward_rate_second_half": 0.1192,
+        "regret_vs_best_fixed_arm": 1766.0,
+        "item_level_hits": 2,
+        "arms_tried": 101,
+        "top_arms": [
+          {
+            "category": "Dress",
+            "pulls": 1052,
+            "mean_reward": 0.323
+          },
+          {
+            "category": "Trousers",
+            "pulls": 696,
+            "mean_reward": 0.302
+          },
+          {
+            "category": "Sweater",
+            "pulls": 246,
+            "mean_reward": 0.224
+          },
+          {
+            "category": "Skirt",
+            "pulls": 141,
+            "mean_reward": 0.163
+          },
+          {
+            "category": "Shorts",
+            "pulls": 138,
+            "mean_reward": 0.159
+          }
+        ]
+      }
+    }
+  },
+  "stage2_grid": {
+    "candidates": "artifacts/recommendation/stage12/stage2_test_candidates.npz",
+    "users": 8054,
+    "users_without_candidates": 0,
+    "rows": [
+      {
+        "source": "stage2",
+        "exploration_slots": 1,
+        "exploration_pool_size": 500,
+        "session_weight": 0.0,
+        "score_normalization": "minmax",
+        "hit_rate_at_50": 0.2738,
+        "ndcg_at_50": 0.0256,
+        "coverage": 0.2525
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 1,
+        "exploration_pool_size": 500,
+        "session_weight": 0.0,
+        "score_normalization": "rank",
+        "hit_rate_at_50": 0.2738,
+        "ndcg_at_50": 0.0256,
+        "coverage": 0.2504
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 1,
+        "exploration_pool_size": 500,
+        "session_weight": 0.1,
+        "score_normalization": "minmax",
+        "hit_rate_at_50": 0.2735,
+        "ndcg_at_50": 0.0255,
+        "coverage": 0.2486
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 1,
+        "exploration_pool_size": 500,
+        "session_weight": 0.1,
+        "score_normalization": "rank",
+        "hit_rate_at_50": 0.2737,
+        "ndcg_at_50": 0.0255,
+        "coverage": 0.2515
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 1,
+        "exploration_pool_size": 500,
+        "session_weight": 0.2,
+        "score_normalization": "minmax",
+        "hit_rate_at_50": 0.2733,
+        "ndcg_at_50": 0.0254,
+        "coverage": 0.247
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 1,
+        "exploration_pool_size": 500,
+        "session_weight": 0.2,
+        "score_normalization": "rank",
+        "hit_rate_at_50": 0.2734,
+        "ndcg_at_50": 0.0252,
+        "coverage": 0.2509
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 1,
+        "exploration_pool_size": 500,
+        "session_weight": 0.3,
+        "score_normalization": "minmax",
+        "hit_rate_at_50": 0.2717,
+        "ndcg_at_50": 0.0251,
+        "coverage": 0.2467
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 1,
+        "exploration_pool_size": 500,
+        "session_weight": 0.3,
+        "score_normalization": "rank",
+        "hit_rate_at_50": 0.2737,
+        "ndcg_at_50": 0.0252,
+        "coverage": 0.2504
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 1,
+        "exploration_pool_size": 500,
+        "session_weight": 0.6,
+        "score_normalization": "minmax",
+        "hit_rate_at_50": 0.2728,
+        "ndcg_at_50": 0.0249,
+        "coverage": 0.2461
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 1,
+        "exploration_pool_size": 500,
+        "session_weight": 0.6,
+        "score_normalization": "rank",
+        "hit_rate_at_50": 0.2704,
+        "ndcg_at_50": 0.0246,
+        "coverage": 0.2417
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 2,
+        "exploration_pool_size": 500,
+        "session_weight": 0.0,
+        "score_normalization": "minmax",
+        "hit_rate_at_50": 0.2709,
+        "ndcg_at_50": 0.0251,
+        "coverage": 0.2782
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 2,
+        "exploration_pool_size": 500,
+        "session_weight": 0.0,
+        "score_normalization": "rank",
+        "hit_rate_at_50": 0.2709,
+        "ndcg_at_50": 0.0251,
+        "coverage": 0.2762
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 2,
+        "exploration_pool_size": 500,
+        "session_weight": 0.1,
+        "score_normalization": "minmax",
+        "hit_rate_at_50": 0.2703,
+        "ndcg_at_50": 0.025,
+        "coverage": 0.274
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 2,
+        "exploration_pool_size": 500,
+        "session_weight": 0.1,
+        "score_normalization": "rank",
+        "hit_rate_at_50": 0.2704,
+        "ndcg_at_50": 0.025,
+        "coverage": 0.2761
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 2,
+        "exploration_pool_size": 500,
+        "session_weight": 0.2,
+        "score_normalization": "minmax",
+        "hit_rate_at_50": 0.2704,
+        "ndcg_at_50": 0.0249,
+        "coverage": 0.274
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 2,
+        "exploration_pool_size": 500,
+        "session_weight": 0.2,
+        "score_normalization": "rank",
+        "hit_rate_at_50": 0.2697,
+        "ndcg_at_50": 0.0247,
+        "coverage": 0.276
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 2,
+        "exploration_pool_size": 500,
+        "session_weight": 0.3,
+        "score_normalization": "minmax",
+        "hit_rate_at_50": 0.2688,
+        "ndcg_at_50": 0.0246,
+        "coverage": 0.2738
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 2,
+        "exploration_pool_size": 500,
+        "session_weight": 0.3,
+        "score_normalization": "rank",
+        "hit_rate_at_50": 0.2707,
+        "ndcg_at_50": 0.0247,
+        "coverage": 0.275
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 2,
+        "exploration_pool_size": 500,
+        "session_weight": 0.6,
+        "score_normalization": "minmax",
+        "hit_rate_at_50": 0.2687,
+        "ndcg_at_50": 0.0243,
+        "coverage": 0.2719
+      },
+      {
+        "source": "stage2",
+        "exploration_slots": 2,
+        "exploration_pool_size": 500,
+        "session_weight": 0.6,
+        "score_normalization": "rank",
+        "hit_rate_at_50": 0.2673,
+        "ndcg_at_50": 0.0241,
+        "coverage": 0.2678
+      }
+    ]
+  }
+}

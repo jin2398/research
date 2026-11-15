@@ -1,0 +1,44 @@
+# Stage 3 session encoder (GRU). CLI:
+#   python -m src.recommendation.session_encoder train    --config config/session_encoder.yaml
+#   python -m src.recommendation.session_encoder evaluate --config config/session_encoder.yaml
+data:
+  events_path: data/behavior_logs.csv                  # simulator log (time-sorted)
+  clip_artifacts_dir: artifacts/search/clip_hnsw_full  # item vectors = CLIP image embeddings (frozen)
+  products_path: data/hm_products.csv                  # categories, for the category-level metric
+
+columns:
+  session_id: session_id
+  event_type: event_type
+  product_id: product_id
+  timestamp: timestamp
+  item_id: article_id          # product id column in products_path
+  category: category_small     # same category level as the diversity rule
+
+click_events: [view, cart, purchase]   # search rows have no product and are skipped
+
+split:                                 # same time-based 8/1/1 split as docs/split_report.json
+  train: 0.8
+  valid: 0.1
+
+model:
+  hidden_size: 256
+  num_layers: 1
+  dropout: 0.1
+
+train:
+  epochs: 3
+  batch_size: 128
+  learning_rate: 0.001
+  temperature: 0.07        # InfoNCE temperature, in-batch negatives
+  window: 20               # most recent clicks fed to the GRU (same as rerank session.window)
+  max_sessions: null       # e.g. 20000 for a quick run; null = all train sessions
+
+evaluation:
+  sessions: 5000           # valid-split sessions sampled for next-click evaluation
+  k: 20
+
+output:
+  model_path: artifacts/recommendation/session_gru.pt
+  report_path: docs/session_encoder_report.json
+
+random_seed: 42

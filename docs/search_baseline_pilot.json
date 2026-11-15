@@ -1,0 +1,34 @@
+{
+  "method": "BM25_text_only",
+  "catalog": {
+    "product_rows": 105542,
+    "feature_rows": 70831,
+    "missing_features": 34711,
+    "missing_images": 310,
+    "included": 1000
+  },
+  "split": "data\\splits\\test.csv",
+  "seed": 42,
+  "judgment": "same category_small and every explicitly queried color/pattern",
+  "metrics": {
+    "queries": 11300,
+    "queries_without_relevant_catalog_items": 3655,
+    "mrr": 0.6372731422952655,
+    "ndcg_at_10": 0.6194382693836225,
+    "recall_at_10": 0.4473061250792968
+  },
+  "covered_query_metrics": {
+    "queries": 7645,
+    "queries_without_relevant_catalog_items": 0,
+    "mrr": 0.9419472214436234,
+    "ndcg_at_10": 0.9155856695925355,
+    "recall_at_10": 0.6611588245122372
+  },
+  "exact_target_mrr_at_10_diagnostic": 0.004265065318162665,
+  "exact_target_missing_from_catalog": 11153,
+  "unique_query_texts": 1796,
+  "bm25": {
+    "k1": 1.5,
+    "b": 0.75
+  }
+}

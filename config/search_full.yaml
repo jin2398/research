@@ -1,0 +1,19 @@
+# Full catalog build and evaluation. CLI: --config config/search_full.yaml
+# SEARCH_IMAGE_ROOT overrides the image location on another machine.
+products_csv: data/products.csv
+features_csv: data/product_features.csv
+image_root: data/product_images
+artifacts_dir: artifacts/search/clip_hnsw_full
+model_cache_dir: artifacts/search/model_cache
+model_name: openai/clip-vit-base-patch32
+model_local_files_only: false
+device: cpu
+batch_size: 32
+checkpoint_every_batches: 50
+hnsw_m: 32
+ef_construction: 200
+ef_search: 64
+hybrid_text_weight: 0.5
+normalize_korean_text: true
+
+

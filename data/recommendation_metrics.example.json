@@ -1,0 +1,8 @@
+{
+  "_notice": "Example format only. DO NOT rename to recommendation_metrics.json unless actual evaluation output replaces every placeholder below.",
+  "recall_at_300": 0.32,
+  "auc": 0.72,
+  "hit_rate_at_50": 0.23,
+  "ndcg_at_50": 0.09,
+  "coverage": 0.25
+}

@@ -1,0 +1,41 @@
+{
+  "measured_at": "2026-11-15T07:39:23",
+  "base_url": "http://localhost:8000",
+  "calls": 100,
+  "warmup": 10,
+  "threshold_ms": 200.0,
+  "client": "Linux aarch64",
+  "note": "HTTP 요청 전체 시간 (클라이언트 측정). 서버 사양에 따라 달라진다.",
+  "results": {
+    "search_text": {
+      "p50_ms": 54.8,
+      "p95_ms": 178.1,
+      "max_ms": 321.7,
+      "passed": true
+    },
+    "search_image": {
+      "p50_ms": 187.9,
+      "p95_ms": 350.5,
+      "max_ms": 585.7,
+      "passed": false
+    },
+    "search_hybrid": {
+      "p50_ms": 201.1,
+      "p95_ms": 305.7,
+      "max_ms": 348.4,
+      "passed": false
+    },
+    "recommend": {
+      "p50_ms": 39.0,
+      "p95_ms": 84.4,
+      "max_ms": 121.3,
+      "passed": true
+    },
+    "recommend_cold_start": {
+      "p50_ms": 16.7,
+      "p95_ms": 35.5,
+      "max_ms": 147.8,
+      "passed": true
+    }
+  }
+}

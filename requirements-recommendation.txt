@@ -1,0 +1,11 @@
+# Stage 1 (Two-Tower + FAISS) / Stage 2 (DeepFM) training, evaluation and serving.
+# CPU only. Tested with Python 3.13, torch 2.15.0+cpu, faiss-cpu 1.16.0.
+#   python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+#   python -m pip install -r requirements-recommendation.txt
+torch>=2.2
+faiss-cpu>=1.8
+numpy>=1.26
+pandas>=2.1
+scipy>=1.11
+PyYAML>=6.0
+pytest>=8.0

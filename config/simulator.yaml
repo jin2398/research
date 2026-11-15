@@ -1,0 +1,50 @@
+# 행동 로그 시뮬레이터 설정
+# 이 파일만 고치면 페르소나 비율, 카테고리 구조, 행동 확률이 바뀐다 (코드 수정 불필요).
+# 실행: python -m src.simulator --config config/simulator.yaml
+#
+# 주의: 아래 행동 확률은 시연용 기본값이다. data/behavior_logs.csv(학습 로그)를 만든
+#       원래 시뮬레이터의 보정값이 아니므로 이 로그로 모델 성능을 평가하지 않는다.
+
+api_base_url: http://localhost:8000   # 환경변수 SIMULATOR_API_URL 이 있으면 그 값이 우선
+send_to_api: true                     # false = API 호출 없이 CSV 로그만 생성
+
+data:
+  catalog_path: data/product_features.csv   # 상품 ID, category_bucket, price, newness_value
+  products_path: data/hm_products.csv       # 상품 카테고리 계층 (로그 컬럼용)
+  log_path: data/simulated_logs.csv         # append 전용 (CT 모니터가 행 수 증가를 감시)
+
+users: 300                 # 가상 사용자 수
+user_id_prefix: SIM        # 학습 로그 사용자(U00001...)와 겹치지 않게
+events_per_second: 5       # 0 = 최대 속도
+max_events: null           # null = 멈출 때까지 계속
+random_seed: 42
+
+session:
+  min_events: 3            # 세션당 상품 상호작용 수
+  max_events: 12
+  search_probability: 0.3  # 세션 시작 시 검색 API를 호출할 확률
+  recommend_probability: 0.6   # 다음 상품을 추천 결과에서 고를 확률 (나머지는 카탈로그 탐색)
+
+# 카테고리 구조: category_bucket → 사용자 선호 카테고리로 뽑힐 가중치
+# 여기 없는 카테고리 상품은 시뮬레이션에서 제외된다.
+categories:
+  상의: 1.0
+  원피스/스커트: 1.0
+  바지: 1.0
+  아우터: 1.0
+  신발: 1.0
+  가방/잡화: 1.0
+
+# 페르소나: ratio 합계는 1.0 이어야 한다 (기본 비율 = data/behavior_logs.csv 사용자 분포)
+#   category_loyalty : 선호 카테고리 안에서 상품을 고를 확률
+#   price_max        : 이 가격 이하 상품만 봄 (null = 제한 없음)
+#   new_item_bias    : 신상품(newness_value 높은 상품)을 고를 가중치 (0 = 무관)
+#   explore_click    : 추천 결과의 탐색 상품(is_exploration)을 고를 확률
+#   cart / purchase  : 조회 후 장바구니 확률 / 장바구니 후 구매 확률
+personas:
+  value_seeker:      {ratio: 0.25, category_loyalty: 0.6, price_max: 50000, new_item_bias: 0.0, explore_click: 0.10, cart: 0.12, purchase: 0.06}
+  pragmatist:        {ratio: 0.25, category_loyalty: 0.8, price_max: 90000, new_item_bias: 0.0, explore_click: 0.05, cart: 0.15, purchase: 0.08}
+  trendsetter:       {ratio: 0.15, category_loyalty: 0.5, price_max: null,  new_item_bias: 3.0, explore_click: 0.30, cart: 0.18, purchase: 0.08}
+  cautious_explorer: {ratio: 0.15, category_loyalty: 0.4, price_max: 80000, new_item_bias: 0.5, explore_click: 0.40, cart: 0.08, purchase: 0.04}
+  brand_loyal:       {ratio: 0.10, category_loyalty: 0.9, price_max: null,  new_item_bias: 0.0, explore_click: 0.02, cart: 0.20, purchase: 0.10}
+  impulse_buyer:     {ratio: 0.10, category_loyalty: 0.3, price_max: null,  new_item_bias: 1.0, explore_click: 0.25, cart: 0.30, purchase: 0.15}

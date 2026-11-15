@@ -1,0 +1,86 @@
+{
+  "config": {
+    "events_path": "data/behavior_logs.csv",
+    "clip_artifacts_dir": "artifacts/search/clip_hnsw_full",
+    "products_path": "data/products.csv",
+    "session_column": "session_id",
+    "event_type_column": "event_type",
+    "product_id_column": "product_id",
+    "timestamp_column": "timestamp",
+    "item_id_column": "article_id",
+    "category_column": "category_small",
+    "click_events": [
+      "view",
+      "cart",
+      "purchase"
+    ],
+    "train_ratio": 0.8,
+    "valid_ratio": 0.1,
+    "hidden_size": 256,
+    "num_layers": 1,
+    "dropout": 0.1,
+    "epochs": 3,
+    "batch_size": 128,
+    "learning_rate": 0.001,
+    "temperature": 0.07,
+    "window": 20,
+    "max_sessions": null,
+    "eval_sessions": 5000,
+    "eval_k": 20,
+    "model_path": "artifacts/recommendation/session_gru.pt",
+    "report_path": "docs/session_encoder_report.json",
+    "random_seed": 42
+  },
+  "training": {
+    "train_sessions": 105001,
+    "epochs": [
+      {
+        "epoch": 1,
+        "loss": 5.7535
+      },
+      {
+        "epoch": 2,
+        "loss": 5.7124
+      },
+      {
+        "epoch": 3,
+        "loss": 5.7056
+      }
+    ],
+    "hparams": {
+      "dim": 512,
+      "hidden_size": 256,
+      "num_layers": 1,
+      "dropout": 0.1,
+      "window": 20
+    },
+    "train_seconds": 94.4,
+    "model_path": "artifacts/recommendation/session_gru.pt"
+  },
+  "evaluation": {
+    "task": "next click in valid-split sessions (exact search over all CLIP items)",
+    "sessions": 5000,
+    "k": 20,
+    "results": {
+      "gru_session_encoder": {
+        "hit_rate_at_20": 0.0012,
+        "mrr_at_20": 0.0001,
+        "category_precision_at_20": 0.2467,
+        "category_hit_rate_at_20": 0.5334
+      },
+      "weighted_average": {
+        "hit_rate_at_20": 0.0016,
+        "mrr_at_20": 0.0001,
+        "category_precision_at_20": 0.197,
+        "category_hit_rate_at_20": 0.4268
+      },
+      "last_click": {
+        "hit_rate_at_20": 0.0016,
+        "mrr_at_20": 0.0001,
+        "category_precision_at_20": 0.1758,
+        "category_hit_rate_at_20": 0.3336
+      }
+    },
+    "encode_ms_mean_single": 0.249
+  }
+}

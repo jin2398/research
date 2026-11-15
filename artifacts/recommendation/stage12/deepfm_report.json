@@ -1,0 +1,104 @@
+{
+  "params": {
+    "embedding_dim": 16,
+    "hidden": [
+      256,
+      128,
+      64
+    ],
+    "dropout": 0.2,
+    "candidates_per_user": 300,
+    "recent_candidates": 20,
+    "epochs": 4,
+    "batch_size": 4096,
+    "learning_rate": 0.001,
+    "weight_decay": 1e-06,
+    "valid_user_fraction": 0.1,
+    "cvr_weight": 0.5,
+    "score_blend": {
+      "ctr": 1.0,
+      "cvr": 0.0
+    }
+  },
+  "seed": 42,
+  "train_data": {
+    "context": "train split",
+    "labels": "valid-period clicks",
+    "impressions": 2271419,
+    "ctr": 0.0059,
+    "cvr": 0.001017,
+    "users": 7166
+  },
+  "holdout_users": 796,
+  "epochs": [
+    {
+      "epoch": 1,
+      "loss": 0.07999,
+      "valid_auc_ctr": 0.7265,
+      "valid_auc_cvr": 0.678,
+      "seconds": 47.2
+    },
+    {
+      "epoch": 2,
+      "loss": 0.03801,
+      "valid_auc_ctr": 0.7347,
+      "valid_auc_cvr": 0.7029,
+      "seconds": 51.1
+    },
+    {
+      "epoch": 3,
+      "loss": 0.03774,
+      "valid_auc_ctr": 0.7349,
+      "valid_auc_cvr": 0.6981,
+      "seconds": 51.7
+    },
+    {
+      "epoch": 4,
+      "loss": 0.03758,
+      "valid_auc_ctr": 0.7376,
+      "valid_auc_cvr": 0.7149,
+      "seconds": 51.7
+    }
+  ],
+  "best_epoch": 4,
+  "fields": [
+    "item_category_large",
+    "item_category_middle",
+    "item_category_small",
+    "item_category_bucket",
+    "item_brand",
+    "item_product_group",
+    "item_garment_group",
+    "item_color",
+    "item_is_new",
+    "item_is_hot",
+    "item_price",
+    "item_discount_pct",
+    "item_newness_value",
+    "item_popularity_score",
+    "persona",
+    "preferred",
+    "n_events_b",
+    "cat_share_b",
+    "brand_share_b",
+    "bucket_share_b",
+    "price_ratio_b",
+    "seen",
+    "tt_rank_b",
+    "last_cat_match",
+    "session_cat_b",
+    "days_since_b",
+    "pop_b"
+  ],
+  "dense_fields": [
+    "tt_score",
+    "log_pop",
+    "cat_share",
+    "brand_share",
+    "bucket_share",
+    "session_cat_share",
+    "log_price_ratio",
+    "log_n_events"
+  ],
+  "elapsed_s": 215.2
+}

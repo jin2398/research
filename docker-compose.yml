@@ -1,0 +1,91 @@
+# 전체 시스템 단일 실행: docker compose up --build
+#   redis      Feature Store                  localhost:6379
+#   api        검색·추천 API (FastAPI)          http://localhost:8000/docs
+#   dashboard  평가·A/B·CT 대시보드 (Streamlit)  http://localhost:8501
+#   simulator  행동 로그 실시간 생성 → API 호출 + data/simulated_logs.csv
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    image: research-api
+    container_name: api-server
+    ports:
+      - "8000:8000"
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      PRELOAD_MODELS: "1"
+      # torch·faiss 스레드 수. 기본값(CPU 전체)은 서로 경합해 추천 p95가 200ms를 넘었다 (README 5절)
+      OMP_NUM_THREADS: "4"
+      MKL_NUM_THREADS: "4"
+      # 추천 정렬 전략 교체 (deepfm | similarity | newest | popularity). 비우면 config/stage12.yaml 값
+      RANKING_STRATEGY: ${RANKING_STRATEGY:-}
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./docs:/app/docs
+      - ./config:/app/config      # 설정 변경 후 docker compose restart api 로 반영
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import json,urllib.request as u; s=json.load(u.urlopen('http://localhost:8000/api/status')); exit(0 if s['recommendation']['model_loaded'] else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 300s
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dashboard
+    image: research-dashboard
+    container_name: dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      CODISAY_API_BASE_URL: http://api:8000
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./docs:/app/docs
+    restart: unless-stopped
+
+  simulator:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dashboard
+    image: research-dashboard
+    container_name: simulator
+    command: ["python", "-m", "src.simulator", "--config", "config/simulator.yaml"]
+    environment:
+      SIMULATOR_API_URL: http://api:8000
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config      # config/simulator.yaml 수정 후 재시작만 하면 반영
+    depends_on:
+      api:
+        condition: service_healthy
+      dashboard:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  redis_data:

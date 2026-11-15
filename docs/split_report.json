@@ -1,0 +1,109 @@
+{
+  "seed": 42,
+  "total_events": 1000000,
+  "warnings": [
+    "Stage3 신규 사용자(이력 5개 미만) 폴백 테스트용 유저가 test 에 없음 → 별도 합성 유저로 검증 필요."
+  ],
+  "ratios": {
+    "train": 0.8,
+    "valid": 0.1,
+    "test": 0.1
+  },
+  "time_range": {
+    "train": [
+      "2025-01-01 00:00:04",
+      "2025-03-13 23:59:27"
+    ],
+    "valid": [
+      "2025-03-13 23:59:34",
+      "2025-03-22 23:59:59"
+    ],
+    "test": [
+      "2025-03-23 00:00:02",
+      "2025-03-31 23:59:56"
+    ]
+  },
+  "event_level_time_ordered": true,
+  "event_type_ratio": {
+    "train": {
+      "view": 0.7552,
+      "cart": 0.1256,
+      "search": 0.111,
+      "purchase": 0.0082
+    },
+    "valid": {
+      "view": 0.7567,
+      "cart": 0.1238,
+      "search": 0.1112,
+      "purchase": 0.0082
+    },
+    "test": {
+      "view": 0.7548,
+      "cart": 0.1244,
+      "search": 0.113,
+      "purchase": 0.0078
+    }
+  },
+  "search_query_filled_ratio": 1.0,
+  "cold_start": {
+    "test_users": 8054,
+    "test_users_unseen_in_train": 0,
+    "test_users_with_lt5_train_events": 0,
+    "test_items_unseen_in_train_ratio": 0.0435
+  },
+  "persona_calibration": {
+    "brand_loyal": {
+      "target_session_cvr": 0.06,
+      "train_session_cvr": 0.0567,
+      "valid_session_cvr": 0.0605,
+      "test_session_cvr": 0.0478,
+      "sessions": 15555
+    },
+    "cautious_explorer": {
+      "target_session_cvr": 0.01,
+      "train_session_cvr": 0.0098,
+      "valid_session_cvr": 0.0108,
+      "test_session_cvr": 0.0087,
+      "sessions": 23162
+    },
+    "impulse_buyer": {
+      "target_session_cvr": 0.12,
+      "train_session_cvr": 0.1226,
+      "valid_session_cvr": 0.1296,
+      "test_session_cvr": 0.1209,
+      "sessions": 15246
+    },
+    "pragmatist": {
+      "target_session_cvr": 0.05,
+      "train_session_cvr": 0.0498,
+      "valid_session_cvr": 0.0472,
+      "test_session_cvr": 0.0482,
+      "sessions": 40174
+    },
+    "trendsetter": {
+      "target_session_cvr": 0.08,
+      "train_session_cvr": 0.084,
+      "valid_session_cvr": 0.0746,
+      "test_session_cvr": 0.0758,
+      "sessions": 24383
+    },
+    "value_seeker": {
+      "target_session_cvr": 0.03,
+      "train_session_cvr": 0.0296,
+      "valid_session_cvr": 0.0342,
+      "test_session_cvr": 0.0282,
+      "sessions": 40548
+    }
+  },
+  "session_stats": {
+    "n_sessions": 159068,
+    "mean_events": 6.29,
+    "p95_events": 18.0,
+    "sessions_per_split": {
+      "train": 127054,
+      "valid": 15964,
+      "test": 16050
+    }
+  },
+  "size_ok": true
+}

@@ -1,0 +1,29 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# macOS
+.DS_Store
+Icon?
+
+# 환경변수
+.env
+
+# 실행 중 생기는 파일 (다시 만들 수 있음)
+artifacts/ct_state.json
+artifacts/recommendation/bandit_state.json
+artifacts/recommendation/clip_vectors/
+artifacts/search/model_cache/
+artifacts/search/hf_home/
+data/simulated_logs.csv
+
+# Mac venv (OMP_NUM_THREADS=1)
+.venv-mac/
+# Stage 2 후보 캐시 (python -m src.evaluation.stage2_candidates 로 재생성)
+artifacts/recommendation/stage12/stage2_test_candidates.npz
+
+# GitHub 100MB 제한 초과 파일
+data/behavior_logs.csv
+artifacts/search/clip_hnsw_full/products.index

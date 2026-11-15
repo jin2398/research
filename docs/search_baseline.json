@@ -1,0 +1,27 @@
+{
+  "method": "BM25_text_only",
+  "catalog": {
+    "product_rows": 105542,
+    "feature_rows": 70831,
+    "missing_features": 34711,
+    "missing_images": 310,
+    "included": 70521
+  },
+  "split": "data\\splits\\test.csv",
+  "seed": 42,
+  "judgment": "same category_small and every explicitly queried color/pattern",
+  "metrics": {
+    "queries": 11300,
+    "queries_without_relevant_catalog_items": 3,
+    "mrr": 0.924523458350893,
+    "ndcg_at_10": 0.8750660127181245,
+    "recall_at_10": 0.126782696977817
+  },
+  "exact_target_mrr_at_10_diagnostic": 0.05579726787470153,
+  "exact_target_missing_from_catalog": 83,
+  "unique_query_texts": 1796,
+  "bm25": {
+    "k1": 1.5,
+    "b": 0.75
+  }
+}

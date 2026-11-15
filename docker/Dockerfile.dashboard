@@ -1,0 +1,19 @@
+# 대시보드(Streamlit) + 행동 로그 시뮬레이터 (모델 라이브러리 불필요)
+FROM python:3.12-slim
+
+WORKDIR /app
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+COPY requirements-dashboard.txt .
+RUN pip install --no-cache-dir -r requirements-dashboard.txt
+
+COPY src ./src
+COPY config ./config
+COPY .streamlit ./.streamlit
+COPY ct_monitor.py codisay_preview.html run_storefront.py ./
+
+EXPOSE 8501
+CMD ["streamlit", "run", "src/dashboard/app.py", "--server.address=0.0.0.0", \
+     "--server.port=8501", "--server.headless=true", "--browser.gatherUsageStats=false"]

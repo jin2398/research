@@ -1,0 +1,21 @@
+# API 서버: FastAPI + 검색(CLIP/FAISS) + 추천(Two-Tower/DeepFM/Re-ranking)
+FROM python:3.12-slim
+
+WORKDIR /app
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# CPU 전용 torch (GPU 빌드보다 훨씬 작다)
+RUN pip install --no-cache-dir torch==2.15.0 --index-url https://download.pytorch.org/whl/cpu
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src ./src
+COPY config ./config
+COPY scripts ./scripts
+COPY ct_monitor.py ./
+# data/, artifacts/, docs/ 는 용량이 커서 docker-compose 볼륨으로 연결한다.
+
+EXPOSE 8000
+CMD ["uvicorn", "src.serving.api:app", "--host", "0.0.0.0", "--port", "8000"]

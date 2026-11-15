@@ -1,0 +1,61 @@
+# Stage 3 re-ranking (Re-ranking & session). CLI: --config config/rerank.yaml
+data:
+  products_path: data/hm_products.csv       # H&M product file (category_metadata). data/products.csv is the dashboard contract
+  catalog_path: data/product_features.csv   # keep only the simulator catalog (adult items); null = all products
+  events_path: data/behavior_logs.csv       # simulator log, sorted by time
+  train_ratio: 0.8                          # use only the first 80% (train split); null = all events
+  clip_artifacts_dir: artifacts/search/clip_hnsw_full   # null = category-match session signal only
+
+# Column names in products/events files. Match these to the simulator output.
+columns:
+  product_id: article_id      # product id column in the products file
+  event_product_id: product_id   # product id column in the events file
+  catalog_id: article_id         # product id column in catalog_path
+  category: category_small
+  created_at: created_at
+  user_id: user_id
+  event_type: event_type
+  timestamp: timestamp
+
+# Weighted event counts for popularity; unlisted types (e.g. search) are ignored.
+event_weights: {view: 1.0, cart: 3.0, purchase: 5.0}
+
+diversity:
+  max_same_category_run: 2        # 2 allowed, 3 in a row forbidden
+
+cold_start:
+  min_events: 5                   # history < 5 -> popular + trending
+  trending_share: 0.4
+  trending_window_days: 7
+  trending_min_recent: 3.0
+
+new_items:
+  days: 7                         # measured from the simulation clock, not wall time
+  created_at_fallback: first_seen # no created_at column -> first event time in the log (null = disable)
+  slots: 1
+  positions: [2]                  # 0-based positions in the final list
+
+exploration:
+  slots: 1                        # mission: 1~2. On real Stage 2 output 1 keeps HitRate (+0.003) and Coverage 0.25 (docs/stage3_experiments.json stage2_grid)
+  positions: [6, 9]
+  pool_size: 500                  # random pick among the top-N popular of the chosen category
+  algorithm: ucb                  # epsilon_greedy | ucb. ucb keeps Coverage while learning (docs/stage3_report.md)
+  epsilon: 0.1
+  ucb_c: 1.0
+  store:                          # bandit state between restarts (see bandit_store.py)
+    backend: json                 # json | redis | none   (env REDIS_URL overrides redis_url)
+    path: artifacts/recommendation/bandit_state.json
+    redis_url: redis://localhost:6379/0
+    key: stage3:bandit
+
+session:
+  weight: 0.3                     # final = (1-w) * stage2 + w * session similarity. Tuned on real Stage 2 output
+                                  # (stage2_grid): DeepFM already has session features, w 0.6 cost HitRate -0.010
+  score_normalization: rank       # minmax | rank. rank keeps HitRate flat as w grows (DeepFM CTR is skewed)
+  reason_threshold: 0.75          # similarity at which reason becomes session_interest
+  window: 20                      # recent clicks used
+  exclude_recent_clicks: false
+  recent_click_display: 5
+  encoder_config: config/session_encoder.yaml   # GRU session encoder; null = weighted average of click vectors
+
+random_seed: 42

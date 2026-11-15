@@ -1,0 +1,46 @@
+# Offline evaluation of Stage 3 (re-ranking + session). CLI:
+#   python -m src.evaluation.evaluate_stage3 --config config/evaluate_stage3.yaml
+rerank_config: config/rerank.yaml
+
+split:                      # time-based split over all log rows (docs/split_report.json)
+  train: 0.8
+  valid: 0.1
+# User context and popularity come from train+valid: the snapshot just before the
+# test period. Ground truth = items each user touched in the test period.
+truth_events: [view, cart, purchase]
+
+catalog_path: data/product_features.csv     # simulator catalog (adult items), Coverage denominator
+catalog_id_column: article_id
+
+k: 50
+candidate_size: 300         # Stage 2 stand-in candidates per user (popularity or session kNN)
+max_users: null             # e.g. 1000 for a quick run
+latency_sample: 500         # users timed for reranking_ms p95 (after 10 warm-up calls)
+
+report_path: docs/stage3_eval.json
+
+# python -m src.evaluation.stage3_experiments {coverage|bandit|all}
+experiments:
+  report_path: docs/stage3_experiments.json
+  coverage_grid:                      # every combination is evaluated on all test users
+    sources: [popularity, session_knn]
+    exploration_slots: [1, 2]
+    exploration_pool_size: [50, 500, 5000]
+    session_weight: [0.3, 0.6]
+  bandit_simulation:
+    candidate_source: popularity      # Stage 2 stand-in feeding the re-ranker
+    # reward proxy: 1 if the user touched any item of the explored category in the test
+    # period (item-level clicks are too rare in the offline log to compare algorithms)
+    algorithms:
+      - {name: random, algorithm: epsilon_greedy, epsilon: 1.0, ucb_c: 1.0}
+      - {name: epsilon_greedy_0.1, algorithm: epsilon_greedy, epsilon: 0.1, ucb_c: 1.0}
+      - {name: ucb_c1.0, algorithm: ucb, epsilon: 0.1, ucb_c: 1.0}
+  # python -m src.evaluation.stage3_experiments stage2   (needs: OMP_NUM_THREADS=1 python -m src.evaluation.stage2_candidates)
+  # Same grid on the real Stage 2 (Two-Tower -> DeepFM) output. The current rerank.yaml
+  # setting (slots 2, pool 500, w 0.6, minmax) is the reference point = docs/stage12_eval.json.
+  stage2_grid:
+    sources: [stage2]
+    exploration_slots: [1, 2]
+    exploration_pool_size: [500]
+    session_weight: [0.0, 0.1, 0.2, 0.3, 0.6]
+    score_normalization: [minmax, rank]

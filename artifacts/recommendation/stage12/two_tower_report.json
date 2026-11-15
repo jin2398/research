@@ -1,0 +1,90 @@
+{
+  "params": {
+    "embedding_dim": 32,
+    "output_dim": 64,
+    "hidden": [
+      256,
+      128
+    ],
+    "dropout": 0.1,
+    "history_length": 30,
+    "recent_length": 5,
+    "use_item_id": true,
+    "use_user_id": false,
+    "num_negatives": 4,
+    "in_batch_negatives": true,
+    "in_batch_logq": true,
+    "use_profile": true,
+    "temperature": 0.05,
+    "epochs": 4,
+    "batch_size": 1024,
+    "learning_rate": 0.002,
+    "weight_decay": 1e-06,
+    "first_interaction_only": true,
+    "target_horizon": 20
+  },
+  "seed": 42,
+  "training_targets": 592406,
+  "split_rows": {
+    "total": 1000000,
+    "train": 800000,
+    "valid": 100000,
+    "test": 100000,
+    "click_events": 888780
+  },
+  "split_times": {
+    "train": [
+      "2025-01-01 00:00:04",
+      "2025-03-13 23:59:56"
+    ],
+    "valid": [
+      "2025-03-14 00:00:01",
+      "2025-03-22 23:59:59"
+    ],
+    "test": [
+      "2025-03-23 00:00:02",
+      "2025-03-31 23:59:56"
+    ]
+  },
+  "epochs": [
+    {
+      "epoch": 1,
+      "loss": 5.1075,
+      "valid_recall_at_300": 0.2386,
+      "seconds": 216.0
+    },
+    {
+      "epoch": 2,
+      "loss": 4.8341,
+      "valid_recall_at_300": 0.2369,
+      "seconds": 178.3
+    },
+    {
+      "epoch": 3,
+      "loss": 4.7962,
+      "valid_recall_at_300": 0.2353,
+      "seconds": 168.9
+    },
+    {
+      "epoch": 4,
+      "loss": 4.7734,
+      "valid_recall_at_300": 0.2381,
+      "seconds": 169.5
+    }
+  ],
+  "best_epoch": 1,
+  "valid": {
+    "users": 3000,
+    "context": "train split",
+    "truth": "valid-period clicks",
+    "two_tower_recall_at_300": 0.2386,
+    "popularity_recall_at_300": 0.0717
+  },
+  "index": {
+    "type": "hnsw",
+    "vectors": 70831,
+    "dim": 64,
+    "build_s": 1.42
+  },
+  "elapsed_s": 748.1
+}

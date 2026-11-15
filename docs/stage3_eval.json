@@ -1,0 +1,149 @@
+{
+  "protocol": {
+    "data": "data/behavior_logs.csv",
+    "split": "time-based over all rows, train/valid/test = 0.8/0.1/0.1",
+    "rows": {
+      "train": 800000,
+      "valid": 100000,
+      "test": 100000
+    },
+    "snapshot": "2025-03-22 23:59:59",
+    "context": "train+valid events (popularity, history, recent clicks)",
+    "truth": "items with ['view', 'cart', 'purchase'] events in the test period",
+    "users": 8054,
+    "k": 50,
+    "candidate_size": 300,
+    "catalog_size": 70831,
+    "catalog": "data/product_features.csv",
+    "random_seed": 42,
+    "users_with_session_vector": 8054
+  },
+  "strategies": {
+    "popularity": {
+      "note": "baseline: same top-k popular items for every user",
+      "users": 8054,
+      "k": 50,
+      "hit_rate_at_50": 0.0995,
+      "ndcg_at_50": 0.0083,
+      "recall_at_50": 0.0176,
+      "mrr_at_50": 0.0108,
+      "coverage": 0.0007
+    },
+    "session_knn": {
+      "note": "GRU session vector -> nearest CLIP items, no re-ranking",
+      "users": 8054,
+      "k": 50,
+      "hit_rate_at_50": 0.0508,
+      "ndcg_at_50": 0.0029,
+      "recall_at_50": 0.0057,
+      "mrr_at_50": 0.0046,
+      "coverage": 0.0179
+    },
+    "popularity+stage3": {
+      "note": "popularity candidates -> Stage 3 (GRU session blend, diversity, MAB, new items)",
+      "users": 8054,
+      "k": 50,
+      "hit_rate_at_50": 0.1127,
+      "ndcg_at_50": 0.0089,
+      "recall_at_50": 0.0197,
+      "mrr_at_50": 0.0107,
+      "coverage": 0.0975,
+      "stage3": {
+        "lists": 8054,
+        "reason_counts": {
+          "ranking": 377464,
+          "mab_exploration": 16108,
+          "new_arrival": 8054,
+          "session_interest": 1074
+        },
+        "exploration_slots_per_list": 2.0,
+        "new_arrival_per_list": 1.0,
+        "max_same_category_run": 2,
+        "lists_violating_diversity": 0,
+        "cold_start_lists": 0
+      }
+    },
+    "session_knn+stage3": {
+      "note": "session kNN candidates -> Stage 3",
+      "users": 8054,
+      "k": 50,
+      "hit_rate_at_50": 0.0482,
+      "ndcg_at_50": 0.0027,
+      "recall_at_50": 0.0054,
+      "mrr_at_50": 0.004,
+      "coverage": 0.1164,
+      "stage3": {
+        "lists": 8054,
+        "reason_counts": {
+          "ranking": 378538,
+          "mab_exploration": 16108,
+          "new_arrival": 8054
+        },
+        "exploration_slots_per_list": 2.0,
+        "new_arrival_per_list": 1.0,
+        "max_same_category_run": 2,
+        "lists_violating_diversity": 0,
+        "cold_start_lists": 0
+      }
+    },
+    "popularity+stage3_no_gru": {
+      "note": "ablation: Stage 3 with weighted-average session vector",
+      "users": 8054,
+      "k": 50,
+      "hit_rate_at_50": 0.1055,
+      "ndcg_at_50": 0.0084,
+      "recall_at_50": 0.0183,
+      "mrr_at_50": 0.0104,
+      "coverage": 0.0982,
+      "stage3": {
+        "lists": 8054,
+        "reason_counts": {
+          "session_interest": 365882,
+          "mab_exploration": 16108,
+          "ranking": 12656,
+          "new_arrival": 8054
+        },
+        "exploration_slots_per_list": 2.0,
+        "new_arrival_per_list": 1.0,
+        "max_same_category_run": 2,
+        "lists_violating_diversity": 0,
+        "cold_start_lists": 0
+      }
+    }
+  },
+  "lift_vs_popularity_hit_rate": {
+    "session_knn": -0.4894,
+    "popularity+stage3": 0.1327,
+    "session_knn+stage3": -0.5156,
+    "popularity+stage3_no_gru": 0.0603
+  },
+  "latency": {
+    "session_encode": {
+      "calls": 500,
+      "p50_ms": 0.678,
+      "p95_ms": 1.252
+    },
+    "rerank_session_knn": {
+      "calls": 500,
+      "p50_ms": 3.712,
+      "p95_ms": 5.683
+    }
+  },
+  "cold_start_check": {
+    "history_count": 0,
+    "cold_start": true,
+    "reasons": {
+      "popular": 28,
+      "trending": 19,
+      "new_arrival": 1,
+      "mab_exploration": 2
+    }
+  },
+  "targets": {
+    "hit_rate_at_50": 0.2,
+    "ndcg_at_50": 0.08,
+    "coverage": 0.2
+  },
+  "note": "Stage 1/2 are stand-ins; final HitRate/NDCG must be re-measured with the Two-Tower + DeepFM candidates.",
+  "elapsed_s": 96.5
+}

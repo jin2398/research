@@ -1,0 +1,10 @@
+-r requirements-dashboard.txt
+fastapi>=0.110,<1
+uvicorn>=0.27,<1
+python-multipart>=0.0.9
+faiss-cpu>=1.8
+numpy>=1.26
+PyYAML>=6.0
+transformers>=4.40,<5
+torch>=2.2
+pydantic>=2.0

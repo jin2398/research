@@ -1,0 +1,33 @@
+{
+  "index_products": 1000,
+  "model_name": "openai/clip-vit-base-patch32",
+  "device": "cpu",
+  "os": "Windows-10-10.0.19045-SP0",
+  "cpu_count": 8,
+  "warmup_requests_per_mode": 10,
+  "measured_requests_per_mode": 100,
+  "concurrent_requests": 1,
+  "api_overhead_included": false,
+  "timings": {
+    "text": {
+      "p50_ms": 23.365,
+      "p95_ms": 27.777,
+      "min_ms": 15.652,
+      "max_ms": 31.745
+    },
+    "image": {
+      "p50_ms": 227.463,
+      "p95_ms": 298.703,
+      "min_ms": 153.742,
+      "max_ms": 419.308
+    },
+    "hybrid": {
+      "p50_ms": 288.251,
+      "p95_ms": 376.008,
+      "min_ms": 182.225,
+      "max_ms": 461.021
+    }
+  },
+  "torch_num_threads": 4,
+  "omp_num_threads_env": "4"
+}

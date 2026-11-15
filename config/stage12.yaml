@@ -1,0 +1,107 @@
+# Stage 1 (Two-Tower candidate generation) + Stage 2 (DeepFM ranking). CLI:
+#   python -m src.recommendation.two_tower train   --config config/stage12.yaml
+#   python -m src.recommendation.deepfm    train   --config config/stage12.yaml
+#   python -m src.evaluation.evaluate_stage12      --config config/stage12.yaml
+#   python -m src.recommendation.pipeline demo     --config config/stage12.yaml --user-id U00001
+data:
+  events_path: data/behavior_logs.csv       # simulator log (time-sorted, 1,000,000 rows)
+  catalog_path: data/product_features.csv   # simulator catalog (70,831 adult items) = FAISS index rows
+  products_path: data/hm_products.csv       # H&M category hierarchy / color / product group
+
+columns:
+  user_id: user_id
+  session_id: session_id
+  event_type: event_type
+  product_id: product_id      # product id column in the events file
+  timestamp: timestamp
+  persona: persona
+  preferred_category: preferred_category
+  item_id: article_id         # product id column in catalog/products files
+
+# Same rule as docs/split_report.json and src/recommendation/rerank.split_events:
+# all rows sorted by time (stable), first 80% train, next 10% valid, last 10% test.
+split:
+  train: 0.8
+  valid: 0.1
+
+click_events: [view, cart, purchase]       # search rows carry no product and are skipped
+event_weights: {view: 1.0, cart: 3.0, purchase: 5.0}
+
+# Item features (Item Tower + DeepFM). Numeric columns are bucketed by catalog quantiles.
+item_features:
+  categorical: [category_large, category_middle, category_small, category_bucket, brand,
+                product_group, garment_group, color, is_new, is_hot]
+  bucketed: {price: 10, discount_pct: 5, newness_value: 10, popularity_score: 10}
+
+two_tower:
+  embedding_dim: 32           # per-field embedding size
+  output_dim: 64              # tower output (FAISS vector size)
+  hidden: [256, 128]
+  dropout: 0.1
+  history_length: 30          # most recent clicks fed to the User Tower
+  recent_length: 5            # extra pooled view of the last few clicks
+  use_item_id: true           # item-id embedding in the Item Tower (learns item-level popularity)
+  use_user_id: false          # user-id embedding in the User Tower (memorization; off = generalizes)
+  num_negatives: 4            # mission protocol: random negatives 1:4
+  in_batch_negatives: true    # also use the other positives of the batch as negatives
+  in_batch_logq: true         # logQ correction of in-batch negatives (keeps item popularity signal)
+  use_profile: true           # long-term profile: share of history per category / brand / bucket + price
+  temperature: 0.05
+  epochs: 4
+  batch_size: 1024
+  learning_rate: 0.002
+  weight_decay: 0.000001
+  first_interaction_only: true   # anchors = first interaction of a user with an item
+  target_horizon: 20          # 1 = next click; N = a random click among the next N (long-term interest)
+
+faiss:
+  index_type: hnsw            # flat | hnsw | ivfpq
+  hnsw_m: 32
+  hnsw_ef_construction: 200
+  hnsw_ef_search: 512         # must be >= top_k
+  ivf_nlist: 256
+  ivf_nprobe: 32
+  pq_m: 16
+  top_k: 300                  # candidates per user (mission: >= 300 within 100 ms)
+
+deepfm:
+  embedding_dim: 16
+  hidden: [256, 128, 64]
+  dropout: 0.2
+  candidates_per_user: 300    # "impressions" = Stage 1 candidates; non-clicked = implicit negative
+  recent_candidates: 20       # + up to N most recent clicked items missing from the FAISS top-300 (0 = off)
+  epochs: 4
+  batch_size: 4096
+  learning_rate: 0.001
+  weight_decay: 0.000001
+  valid_user_fraction: 0.1    # users held out of the ranking train set for early stopping
+  cvr_weight: 0.5             # loss weight of the CVR (cart/purchase) head
+  score_blend: {ctr: 1.0, cvr: 0.0}   # Stage 2 output score = weighted sum of the two heads
+
+evaluation:
+  recall_k: 300
+  k: 50
+  latency_users: 110          # mission protocol: 10 warm-up calls + 100 timed calls, p95
+  max_users: null             # e.g. 1000 for a quick run
+  run_ceiling: true          # rule-based / oracle Recall@300 bounds (~40 s)
+  run_stage3: true            # also feed Stage 2 output to the Stage 3 re-ranker (config/rerank.yaml)
+  rerank_config: config/rerank.yaml
+  report_path: docs/stage12_eval.json
+  dashboard_metrics_path: data/recommendation_metrics.json   # read by the Streamlit dashboard
+
+output:
+  dir: artifacts/recommendation/stage12
+  # files written: encoders.json, two_tower.pt, item_embeddings.npy, items.index,
+  #                deepfm.pt, user_state.pkl, two_tower_report.json, deepfm_report.json
+
+random_seed: 42
+
+# 서빙 설정 (API 서버가 읽음)
+serving:
+  # Stage 2 정렬 전략 (src/recommendation/strategies.py)
+  #   deepfm     : DeepFM 클릭 확률 순 (기본, 평가 지표는 이 설정 기준)
+  #   similarity : Two-Tower 벡터 유사도 순
+  #   newest     : 신상품 지수 순 (최신순)
+  #   popularity : 인기도 순
+  # 환경변수 RANKING_STRATEGY 가 있으면 그 값이 우선한다.
+  ranking_strategy: deepfm

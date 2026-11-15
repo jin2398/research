@@ -1,0 +1,216 @@
+{
+  "protocol": {
+    "data": "data/behavior_logs.csv",
+    "rows": {
+      "total": 1000000,
+      "train": 800000,
+      "valid": 100000,
+      "test": 100000,
+      "click_events": 888780
+    },
+    "split_times": {
+      "train": [
+        "2025-01-01 00:00:04",
+        "2025-03-13 23:59:56"
+      ],
+      "valid": [
+        "2025-03-14 00:00:01",
+        "2025-03-22 23:59:59"
+      ],
+      "test": [
+        "2025-03-23 00:00:02",
+        "2025-03-31 23:59:56"
+      ]
+    },
+    "split": "time-based over all rows, train/valid/test = 0.8/0.1/0.1",
+    "context": "train+valid (user history, popularity)",
+    "two_tower_trained_on": "train",
+    "deepfm_trained_on": "train context -> valid labels",
+    "truth": "items viewed/carted/purchased in the test period",
+    "users": 8054,
+    "catalog_size": 70831,
+    "k": 50,
+    "recall_k": 300,
+    "random_seed": 42,
+    "hardware": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "Intel64 Family 6 Model 165 Stepping 2, GenuineIntel",
+      "logical_cpus": 12,
+      "python": "3.13.9",
+      "torch": "2.15.0+cpu",
+      "faiss": "1.16.0",
+      "gpu": false,
+      "torch_threads": 4,
+      "measured_at": "2026-11-12T21:51:18"
+    }
+  },
+  "stage1": {
+    "two_tower_faiss_recall_at_300": 0.2315,
+    "two_tower_exact_recall_at_300": 0.2317,
+    "popularity_recall_at_300": 0.0758,
+    "index_type": "hnsw",
+    "lift_vs_popularity": 2.0541,
+    "recall_by_persona": {
+      "brand_loyal": 0.0854,
+      "cautious_explorer": 0.1129,
+      "impulse_buyer": 0.1005,
+      "pragmatist": 0.2926,
+      "trendsetter": 0.2093,
+      "value_seeker": 0.3559
+    },
+    "ranking_pool_recall": 0.2389,
+    "ranking_pool": "FAISS top-300 + up to 20 recent clicks not in it"
+  },
+  "stage2": {
+    "recent_candidates_per_user": 20,
+    "impressions": 2554590,
+    "ctr": 0.00571,
+    "cvr": 0.001029,
+    "auc_ctr_deepfm": 0.7482,
+    "auc_cvr_deepfm": 0.7157,
+    "auc_ctr_two_tower_score": 0.6257,
+    "auc_ctr_popularity": 0.6803,
+    "auc_ctr_deepfm_faiss_candidates_only": 0.7424,
+    "auc_lift_vs_two_tower": 0.1958
+  },
+  "strategies": {
+    "popularity": {
+      "users": 8054,
+      "k": 50,
+      "hit_rate_at_50": 0.0995,
+      "ndcg_at_50": 0.0083,
+      "recall_at_50": 0.0176,
+      "mrr_at_50": 0.0108,
+      "coverage": 0.0007
+    },
+    "two_tower": {
+      "users": 8054,
+      "k": 50,
+      "hit_rate_at_50": 0.2482,
+      "ndcg_at_50": 0.0211,
+      "recall_at_50": 0.0448,
+      "mrr_at_50": 0.0259,
+      "coverage": 0.038
+    },
+    "two_tower+deepfm": {
+      "users": 8054,
+      "k": 50,
+      "hit_rate_at_50": 0.2832,
+      "ndcg_at_50": 0.0275,
+      "recall_at_50": 0.0553,
+      "mrr_at_50": 0.0349,
+      "coverage": 0.2115
+    },
+    "two_tower+deepfm+stage3": {
+      "users": 8054,
+      "k": 50,
+      "hit_rate_at_50": 0.2703,
+      "ndcg_at_50": 0.0243,
+      "recall_at_50": 0.0519,
+      "mrr_at_50": 0.0282,
+      "coverage": 0.2759
+    }
+  },
+  "lift_vs_popularity_hit_rate": {
+    "two_tower": 1.4945,
+    "two_tower+deepfm": 1.8462,
+    "two_tower+deepfm+stage3": 1.7166
+  },
+  "stage3": {
+    "lists": 8054,
+    "reason_counts": {
+      "ranking": 374993,
+      "mab_exploration": 16108,
+      "new_arrival": 8054,
+      "session_interest": 3545
+    },
+    "exploration_slots_per_list": 2.0,
+    "new_arrival_per_list": 1.0,
+    "max_same_category_run": 2,
+    "lists_violating_diversity": 0,
+    "cold_start_lists": 0,
+    "top10_exploration_slots_per_list": 2.0
+  },
+  "latency": {
+    "candidate_generation": {
+      "calls": 100,
+      "warmup": 10,
+      "p50_ms": 2.432,
+      "p95_ms": 3.476
+    },
+    "ranking": {
+      "calls": 100,
+      "warmup": 10,
+      "p50_ms": 2.153,
+      "p95_ms": 2.669
+    },
+    "reranking": {
+      "calls": 110,
+      "p50_ms": 7.878,
+      "p95_ms": 9.812
+    },
+    "sum_p95_ms": 15.957
+  },
+  "ceiling": {
+    "users": 8054,
+    "k": 300,
+    "history_small_recall_at_300": 0.2395,
+    "history_bucket_recall_at_300": 0.2502,
+    "oracle_bucket_recall_at_300": 0.2667,
+    "oracle_small_recall_at_300": 0.4103,
+    "note": "oracle_* use test-period categories (not achievable by a model)",
+    "elapsed_s": 47.5
+  },
+  "headline": {
+    "recall_at_300": 0.2315,
+    "auc": 0.7482,
+    "hit_rate_at_50": 0.2703,
+    "ndcg_at_50": 0.0243,
+    "coverage": 0.2759,
+    "candidate_p95_ms": 3.476
+  },
+  "headline_source": {
+    "lists": "two_tower+deepfm+stage3"
+  },
+  "targets": {
+    "recall_at_300": 0.3,
+    "auc": 0.7,
+    "hit_rate_at_50": 0.2,
+    "ndcg_at_50": 0.08,
+    "coverage": 0.2,
+    "candidate_p95_ms": 100.0
+  },
+  "passed": {
+    "recall_at_300": false,
+    "auc": true,
+    "hit_rate_at_50": true,
+    "ndcg_at_50": false,
+    "coverage": true,
+    "candidate_p95_ms": true
+  },
+  "elapsed_s": 181.3,
+  "api_bench": {
+    "calls": 100,
+    "warmup": 10,
+    "top_n": 10,
+    "load_s": 10.49,
+    "latency": {
+      "candidate_ms": {
+        "p50": 2.822,
+        "p95": 3.523
+      },
+      "ranking_ms": {
+        "p50": 2.3,
+        "p95": 3.056
+      },
+      "reranking_ms": {
+        "p50": 9.375,
+        "p95": 12.289
+      },
+      "total_ms": {
+        "p50": 14.319,
+        "p95": 17.507
+      }
+    }
+  }
+}

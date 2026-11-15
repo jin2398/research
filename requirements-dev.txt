@@ -1,0 +1,7 @@
+# 로컬 개발·테스트용 (전체)
+-r requirements.txt
+-r requirements-dashboard.txt
+torch==2.15.0
+pytest
+httpx
+fakeredis

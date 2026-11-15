@@ -1,0 +1,19 @@
+{
+  "index_type": "HNSWFlat_IP",
+  "model_name": "openai/clip-vit-base-patch32",
+  "dimension": 512,
+  "indexed_products": 70521,
+  "full_eligible_catalog": 70521,
+  "partial_build": false,
+  "hnsw_m": 32,
+  "ef_construction": 200,
+  "ef_search": 64,
+  "build_seconds": 40088.562,
+  "catalog_stats": {
+    "product_rows": 105542,
+    "feature_rows": 70831,
+    "missing_features": 34711,
+    "missing_images": 310,
+    "included": 70521
+  }
+}

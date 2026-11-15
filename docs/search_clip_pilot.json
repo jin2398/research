@@ -1,0 +1,25 @@
+{
+  "method": "CLIP_text_to_image_HNSW",
+  "index_products": 1000,
+  "partial_build": true,
+  "split": "data\\splits\\test.csv",
+  "seed": 42,
+  "judgment": "same category_small and every explicitly queried color/pattern",
+  "metrics": {
+    "queries": 11300,
+    "queries_without_relevant_catalog_items": 3655,
+    "mrr": 0.4772943531394862,
+    "ndcg_at_10": 0.4178699974187452,
+    "recall_at_10": 0.3369875302934946
+  },
+  "covered_query_metrics": {
+    "queries": 7645,
+    "queries_without_relevant_catalog_items": 0,
+    "mrr": 0.7054841321747801,
+    "ndcg_at_10": 0.6176495710702186,
+    "recall_at_10": 0.49809798460647337
+  },
+  "exact_target_mrr_at_10_diagnostic": 0.0026236831015592076,
+  "exact_target_missing_from_catalog": 11153,
+  "unique_query_texts": 1796
+}
