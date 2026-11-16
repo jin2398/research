@@ -19,6 +19,7 @@ class _Open(BaseModel):
 # ------------------------------------------------------------------ 검색
 class SearchRequest(BaseModel):
     """JSON 텍스트 검색. query_text(미션 규격)와 query(기존 UI) 둘 다 받는다."""
+
     query_text: str | None = Field(default=None, max_length=300)
     query: str | None = Field(default=None, max_length=300)
     mode: Literal["text"] = "text"

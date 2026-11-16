@@ -57,7 +57,7 @@ class Services:
     def __init__(self) -> None:
         self.recommender: Any = None
         self.recommender_error: str | None = None
-        self._lock = threading.Lock()          # 추천 + MAB 피드백은 순서대로 처리
+        self._lock = threading.Lock()  # 추천 + MAB 피드백은 순서대로 처리
 
     def load_recommender(self) -> Any:
         if self.recommender is None:
@@ -67,15 +67,19 @@ class Services:
 
                     svc = RecommendationService()
                     self.recommender = svc
-                    _log(f"Two-Tower + FAISS 후보 생성 모델 로딩 완료 ({svc.items.n_items:,} 상품)")
-                    _log(f"DeepFM Ranking 모델 로딩 완료 (정렬 전략: {svc.strategy.name})")
+                    _log(
+                        f"Two-Tower + FAISS 후보 생성 모델 로딩 완료 ({svc.items.n_items:,} 상품)"
+                    )
+                    _log(
+                        f"DeepFM Ranking 모델 로딩 완료 (정렬 전략: {svc.strategy.name})"
+                    )
                     _log(f"Stage 3 Re-ranking 로딩 완료 (총 {svc.load_s}s)")
         return self.recommender
 
     def require_recommender(self) -> Any:
         try:
             return self.load_recommender()
-        except Exception as exc:  # noqa: BLE001 - 모델 파일 누락 등은 503으로 알린다
+        except Exception as exc:
             self.recommender_error = str(exc)
             raise HTTPException(503, f"추천 모델을 로드할 수 없습니다: {exc}") from exc
 
@@ -85,12 +89,12 @@ services = Services()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    os.chdir(ROOT)          # config 파일의 상대 경로(artifacts/, data/) 기준
+    os.chdir(ROOT)  # config 파일의 상대 경로(artifacts/, data/) 기준
     if os.getenv("PRELOAD_MODELS", "1") == "1":
         try:
             engine = search_bridge._get_engine()
-            search_bridge._ensure_rankers(engine)          # 텍스트 검색용 BM25 색인
-            search_bridge.execute_search(query="warm up", top_k=10)   # 첫 요청 지연 제거
+            search_bridge._ensure_rankers(engine)  # 텍스트 검색용 BM25 색인
+            search_bridge.execute_search(query="warm up", top_k=10)  # 첫 요청 지연 제거
             _log(f"CLIP + FAISS 검색 인덱스 로딩 완료 ({len(engine.products):,} 상품)")
         except Exception as exc:  # noqa: BLE001
             _log(f"검색 모델 로딩 실패 (검색 API는 503 응답): {exc}")
@@ -103,11 +107,18 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="RE:SEARCH Multimodal Search & Recommendation API",
-              version="1.0.0", lifespan=lifespan)
+app = FastAPI(
+    title="RE:SEARCH Multimodal Search & Recommendation API",
+    version="1.0.0",
+    lifespan=lifespan,
+)
 # 로컬 개발용: Streamlit iframe(쇼핑 화면)이 브라우저에서 직접 호출한다.
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "POST"],
-                   allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
 
 
 def _redis_unavailable(detail: str) -> HTTPException:
@@ -144,8 +155,9 @@ def api_status():
 
 # 쇼핑 화면이 쓰는 검색 상태 / 상품 이미지 엔드포인트는 기존 구현을 그대로 노출
 app.add_api_route("/api/search/status", search_bridge.status, methods=["GET"])
-app.add_api_route("/api/search/images/{product_id}", search_bridge.product_image,
-                  methods=["GET"])
+app.add_api_route(
+    "/api/search/images/{product_id}", search_bridge.product_image, methods=["GET"]
+)
 
 
 # ------------------------------------------------------------------ 검색
@@ -161,7 +173,9 @@ def _save_upload(payload: bytes) -> Path:
             img.convert("RGB").save(path, format="JPEG", quality=90)
         return path
     except (UnidentifiedImageError, OSError) as exc:
-        raise HTTPException(422, "올바른 이미지 파일(JPEG/PNG/WEBP)이 아닙니다.") from exc
+        raise HTTPException(
+            422, "올바른 이미지 파일(JPEG/PNG/WEBP)이 아닙니다."
+        ) from exc
 
 
 async def _parse_search(request: Request) -> tuple[str, bytes | None, int]:
@@ -177,7 +191,9 @@ async def _parse_search(request: Request) -> tuple[str, bytes | None, int]:
         if not 1 <= top_k <= 100:
             raise HTTPException(422, "top_k는 1~100 사이여야 합니다.")
         upload = form.get("file") or form.get("image")
-        payload = await upload.read(MAX_IMAGE_BYTES + 1) if hasattr(upload, "read") else None
+        payload = (
+            await upload.read(MAX_IMAGE_BYTES + 1) if hasattr(upload, "read") else None
+        )
         mode = str(form.get("mode") or "")
         if mode in ("image", "hybrid") and not payload:
             raise HTTPException(422, "이미지 검색에는 file 필드가 필요합니다.")
@@ -192,8 +208,11 @@ async def _parse_search(request: Request) -> tuple[str, bytes | None, int]:
     try:
         body = SearchRequest.model_validate(await request.json())
     except (ValidationError, ValueError) as exc:
-        raise HTTPException(422, "검색 JSON은 {query_text, top_k} 형식이어야 합니다. "
-                                 "이미지는 multipart/form-data로 보내세요.") from exc
+        raise HTTPException(
+            422,
+            "검색 JSON은 {query_text, top_k} 형식이어야 합니다. "
+            "이미지는 multipart/form-data로 보내세요.",
+        ) from exc
     if not body.text:
         raise HTTPException(422, "query_text가 비어 있습니다.")
     return body.text, None, body.top_k
@@ -217,8 +236,10 @@ async def search(request: Request):
 
 # ------------------------------------------------------------------ 추천
 @app.get("/api/recommend", response_model=RecommendResponse)
-def recommend(user_id: str = Query(min_length=1, max_length=64),
-              top_n: int = Query(default=10, ge=1, le=100)):
+def recommend(
+    user_id: str = Query(min_length=1, max_length=64),
+    top_n: int = Query(default=10, ge=1, le=100),
+):
     started = time.perf_counter()
     svc = services.require_recommender()
 
@@ -233,7 +254,9 @@ def recommend(user_id: str = Query(min_length=1, max_length=64),
 
     with services._lock:
         result = svc.recommend(user_id, top_n, recent_clicks=session_clicks)
-        explored = [r["product_id"] for r in result["recommendations"] if r["is_exploration"]]
+        explored = [
+            r["product_id"] for r in result["recommendations"] if r["is_exploration"]
+        ]
         if feature_ok:
             try:
                 # 지난번 탐색 상품 중 클릭되지 않은 것 = 보상 0
@@ -256,12 +279,14 @@ def _save_event(user_id: str, product_id: str, event_type: str) -> EventResponse
         raise HTTPException(404, f"Product not found: {product_id}")
     try:
         fs.record_event(user_id, product_id, event_type)
-        rewarded = event_type in CLICK_EVENTS and fs.pop_exploration_hit(user_id, product_id)
+        rewarded = event_type in CLICK_EVENTS and fs.pop_exploration_hit(
+            user_id, product_id
+        )
     except RedisError:
         raise _redis_unavailable(f"Could not save {event_type} event")
     if rewarded and svc is not None:
         with services._lock:
-            svc.record_feedback(product_id, True)      # 탐색 상품 클릭 = 보상 1
+            svc.record_feedback(product_id, True)  # 탐색 상품 클릭 = 보상 1
     return EventResponse(status="saved", action=event_type, exploration_reward=rewarded)
 
 
@@ -290,8 +315,9 @@ def user_history(user_id: str):
 
 
 @app.get("/api/feature-store/latency", response_model=LatencyResponse)
-def feature_store_latency(user_id: str = "test_user",
-                          repeat: int = Query(default=100, ge=1, le=1000)):
+def feature_store_latency(
+    user_id: str = "test_user", repeat: int = Query(default=100, ge=1, le=1000)
+):
     try:
         return fs.measure_read_latency(user_id, repeat)
     except RedisError:

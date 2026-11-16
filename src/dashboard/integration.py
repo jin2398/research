@@ -3,12 +3,12 @@
 Only provided JSON reports are treated as existing experimental evidence.
 Absent recommendation model output stays missing; there are no fabricated metrics.
 """
+
 from __future__ import annotations
 
 import json
 from pathlib import Path
 from typing import Any
-
 
 SEARCH_REPORTS = {
     "bm25_full": "docs/search_baseline.json",
@@ -63,10 +63,23 @@ def load_recommendation_metrics(root: Path) -> dict[str, float] | None:
 def search_compare_rows(reports: dict, *, covered_only: bool = False) -> list[dict]:
     """Comparable pilot index (1000 items): both methods on the same query subset."""
     rows = []
-    for key, label in [("bm25_pilot", "BM25 (1천 개)"), ("clip_pilot", "CLIP (1천 개)")]:
+    for key, label in [
+        ("bm25_pilot", "BM25 (1천 개)"),
+        ("clip_pilot", "CLIP (1천 개)"),
+    ]:
         report = reports.get(key)
         if not report:
             continue
-        metrics = report.get("covered_query_metrics" if covered_only else "metrics") or {}
-        rows.append({"방법": label, "MRR@10": metrics.get("mrr"), "NDCG@10": metrics.get("ndcg_at_10"), "Recall@10": metrics.get("recall_at_10"), "평가 질의 수": metrics.get("queries")})
+        metrics = (
+            report.get("covered_query_metrics" if covered_only else "metrics") or {}
+        )
+        rows.append(
+            {
+                "방법": label,
+                "MRR@10": metrics.get("mrr"),
+                "NDCG@10": metrics.get("ndcg_at_10"),
+                "Recall@10": metrics.get("recall_at_10"),
+                "평가 질의 수": metrics.get("queries"),
+            }
+        )
     return rows

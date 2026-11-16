@@ -1,17 +1,17 @@
 """Two-proportion A/B test for conversion events (independent users)."""
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from math import erfc, sqrt
 from statistics import NormalDist
-from typing import Optional
 
 
 @dataclass(frozen=True)
 class ABTestResult:
     control_cvr_pct: float
     treatment_cvr_pct: float
-    lift_pct: Optional[float]
+    lift_pct: float | None
     p_value: float
     z_statistic: float
     ci_low_pp: float
@@ -63,18 +63,28 @@ def analyze_ab_test(
 
     p_control = control_conversions / control_users
     p_treatment = treatment_conversions / treatment_users
-    pooled = (control_conversions + treatment_conversions) / (control_users + treatment_users)
+    pooled = (control_conversions + treatment_conversions) / (
+        control_users + treatment_users
+    )
     variance = pooled * (1 - pooled) * (1 / control_users + 1 / treatment_users)
     z_statistic = (p_treatment - p_control) / sqrt(variance) if variance else 0.0
     p_value = erfc(abs(z_statistic) / sqrt(2)) if variance else 1.0
     z_crit = NormalDist().inv_cdf(1 - alpha / 2)
-    control_low, control_high = _wilson_interval(control_conversions, control_users, z_crit)
-    treatment_low, treatment_high = _wilson_interval(treatment_conversions, treatment_users, z_crit)
+    control_low, control_high = _wilson_interval(
+        control_conversions, control_users, z_crit
+    )
+    treatment_low, treatment_high = _wilson_interval(
+        treatment_conversions, treatment_users, z_crit
+    )
 
     # Newcombe (1998) hybrid score CI; resistant to small counts and boundary rates.
     difference = p_treatment - p_control
-    lower = difference - sqrt((p_treatment - treatment_low) ** 2 + (control_high - p_control) ** 2)
-    upper = difference + sqrt((treatment_high - p_treatment) ** 2 + (p_control - control_low) ** 2)
+    lower = difference - sqrt(
+        (p_treatment - treatment_low) ** 2 + (control_high - p_control) ** 2
+    )
+    upper = difference + sqrt(
+        (treatment_high - p_treatment) ** 2 + (p_control - control_low) ** 2
+    )
     lift_pct = ((p_treatment / p_control) - 1) * 100 if p_control > 0 else None
     return ABTestResult(
         control_cvr_pct=p_control * 100,

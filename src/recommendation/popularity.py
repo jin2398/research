@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,7 +20,7 @@ def parse_time(value: str) -> datetime:
     """ISO date or datetime; timezone-aware values become naive UTC for comparison."""
     parsed = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
     if parsed.tzinfo is not None:
-        parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
+        parsed = parsed.astimezone(UTC).replace(tzinfo=None)
     return parsed
 
 
@@ -37,8 +37,14 @@ class PopularityIndex:
         self._max = max(self.scores.values(), default=0.0) or 1.0
 
     @classmethod
-    def from_events(cls, events: Iterable[Event], weights: Mapping[str, float],
-                    now: datetime, window_days: int, min_recent: float = 3.0) -> "PopularityIndex":
+    def from_events(
+        cls,
+        events: Iterable[Event],
+        weights: Mapping[str, float],
+        now: datetime,
+        window_days: int,
+        min_recent: float = 3.0,
+    ) -> PopularityIndex:
         """Popularity = weighted event count up to `now`.
 
         Trending = growth of the last `window_days` over the window before it,
@@ -59,23 +65,31 @@ class PopularityIndex:
                 recent[event.product_id] += weight
             elif age <= 2 * window:
                 previous[event.product_id] += weight
-        growth = {pid: (score + 1) / (previous[pid] + 1)
-                  for pid, score in recent.items() if score >= min_recent}
+        growth = {
+            pid: (score + 1) / (previous[pid] + 1)
+            for pid, score in recent.items()
+            if score >= min_recent
+        }
         trending = sorted(growth, key=lambda pid: (-growth[pid], -recent[pid], pid))
         return cls(total, trending)
 
     def normalized(self, product_id: str) -> float:
         return self.scores.get(product_id, 0.0) / self._max
 
-    def mixed(self, n: int, trending_share: float,
-              exclude: Iterable[str] = ()) -> list[tuple[str, str]]:
+    def mixed(
+        self, n: int, trending_share: float, exclude: Iterable[str] = ()
+    ) -> list[tuple[str, str]]:
         """Interleave popular and trending items: [(product_id, "popular" | "trending")]."""
         seen = set(exclude)
         sources = {"popular": iter(self.popular), "trending": iter(self.trending)}
         result: list[tuple[str, str]] = []
         taken_trending = 0
         while len(result) < n:
-            want = "trending" if taken_trending < round((len(result) + 1) * trending_share) else "popular"
+            want = (
+                "trending"
+                if taken_trending < round((len(result) + 1) * trending_share)
+                else "popular"
+            )
             order = (want, "popular" if want == "trending" else "trending")
             picked = None
             for name in order:

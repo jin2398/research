@@ -15,8 +15,14 @@ from typing import Any
 class CategoryBandit:
     ALGORITHMS = ("epsilon_greedy", "ucb")
 
-    def __init__(self, arms: Iterable[str], algorithm: str = "epsilon_greedy",
-                 epsilon: float = 0.1, ucb_c: float = 1.0, seed: int = 42) -> None:
+    def __init__(
+        self,
+        arms: Iterable[str],
+        algorithm: str = "epsilon_greedy",
+        epsilon: float = 0.1,
+        ucb_c: float = 1.0,
+        seed: int = 42,
+    ) -> None:
         if algorithm not in self.ALGORITHMS:
             raise ValueError(f"algorithm must be one of {self.ALGORITHMS}")
         if not 0 <= epsilon <= 1 or ucb_c < 0:
@@ -38,7 +44,7 @@ class CategoryBandit:
     def _value(self, arm: str, total_pulls: int) -> float:
         if self.algorithm == "ucb":
             if not self.pulls[arm]:
-                return math.inf          # every arm is tried once first
+                return math.inf  # every arm is tried once first
             bonus = self.ucb_c * math.sqrt(math.log(total_pulls) / self.pulls[arm])
             return self.mean(arm) + bonus
         return self.mean(arm)
@@ -56,7 +62,9 @@ class CategoryBandit:
                 continue
             values = {arm: self._value(arm, total) for arm in options}
             best = max(values.values())
-            chosen.append(self.rng.choice([arm for arm, v in values.items() if v == best]))
+            chosen.append(
+                self.rng.choice([arm for arm, v in values.items() if v == best])
+            )
         return chosen
 
     def update(self, arm: str, reward: float) -> None:
@@ -71,13 +79,23 @@ class CategoryBandit:
 
     def to_dict(self) -> dict[str, Any]:
         """State for saving between API restarts (e.g. JSON file or Redis hash)."""
-        return {"algorithm": self.algorithm, "epsilon": self.epsilon, "ucb_c": self.ucb_c,
-                "pulls": dict(self.pulls), "rewards": dict(self.rewards)}
+        return {
+            "algorithm": self.algorithm,
+            "epsilon": self.epsilon,
+            "ucb_c": self.ucb_c,
+            "pulls": dict(self.pulls),
+            "rewards": dict(self.rewards),
+        }
 
     @classmethod
-    def from_dict(cls, state: dict[str, Any], seed: int = 42) -> "CategoryBandit":
-        bandit = cls(state["pulls"].keys(), state["algorithm"], state["epsilon"],
-                     state["ucb_c"], seed)
+    def from_dict(cls, state: dict[str, Any], seed: int = 42) -> CategoryBandit:
+        bandit = cls(
+            state["pulls"].keys(),
+            state["algorithm"],
+            state["epsilon"],
+            state["ucb_c"],
+            seed,
+        )
         bandit.pulls.update({k: int(v) for k, v in state["pulls"].items()})
         bandit.rewards.update({k: float(v) for k, v in state["rewards"].items()})
         return bandit

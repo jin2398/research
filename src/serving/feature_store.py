@@ -26,14 +26,19 @@ redis_client = redis.Redis.from_url(
     socket_timeout=3,
 )
 
-RECORD_TTL = 60 * 60 * 24 * 30      # 행동 기록 보관: 30일
-SESSION_TTL = 60 * 30               # 세션 만료: 마지막 행동 후 30분
-MAX_HISTORY = 100                   # 사용자별 최근 기록 개수
-SESSION_LENGTH = 20                 # 세션 클릭 개수 (config/rerank.yaml session.window 와 동일)
-LATENCY_THRESHOLD_MS = 10.0         # Feature Store 조회 목표
+RECORD_TTL = 60 * 60 * 24 * 30  # 행동 기록 보관: 30일
+SESSION_TTL = 60 * 30  # 세션 만료: 마지막 행동 후 30분
+MAX_HISTORY = 100  # 사용자별 최근 기록 개수
+SESSION_LENGTH = 20  # 세션 클릭 개수 (config/rerank.yaml session.window 와 동일)
+LATENCY_THRESHOLD_MS = 10.0  # Feature Store 조회 목표
 
 EVENT_TYPES = ("view", "click", "cart", "purchase")
-_HISTORY_KEY = {"view": "views", "click": "clicks", "cart": "clicks", "purchase": "clicks"}
+_HISTORY_KEY = {
+    "view": "views",
+    "click": "clicks",
+    "cart": "clicks",
+    "purchase": "clicks",
+}
 
 
 def _key(user_id: str, name: str) -> str:
@@ -119,8 +124,9 @@ def _percentile(sorted_values: list[float], p: float) -> float:
     return sorted_values[max(rank, 1) - 1]
 
 
-def measure_read_latency(user_id: str, repeat: int = 100,
-                         threshold_ms: float = LATENCY_THRESHOLD_MS) -> dict:
+def measure_read_latency(
+    user_id: str, repeat: int = 100, threshold_ms: float = LATENCY_THRESHOLD_MS
+) -> dict:
     """추천 API가 쓰는 피처 조회(get_features)를 1회씩 재서 p95로 목표 달성 판정"""
     if repeat < 1:
         raise ValueError("repeat는 1 이상이어야 합니다.")

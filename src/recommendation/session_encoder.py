@@ -60,7 +60,7 @@ class SessionEncoderConfig:
     random_seed: int
 
     @classmethod
-    def from_yaml(cls, path: Path) -> "SessionEncoderConfig":
+    def from_yaml(cls, path: Path) -> SessionEncoderConfig:
         import yaml
 
         v = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
@@ -88,7 +88,9 @@ class SessionEncoderConfig:
             learning_rate=float(train["learning_rate"]),
             temperature=float(train["temperature"]),
             window=int(train["window"]),
-            max_sessions=int(train["max_sessions"]) if train.get("max_sessions") else None,
+            max_sessions=int(train["max_sessions"])
+            if train.get("max_sessions")
+            else None,
             eval_sessions=int(v["evaluation"]["sessions"]),
             eval_k=int(v["evaluation"]["k"]),
             model_path=Path(v["output"]["model_path"]),
@@ -98,7 +100,9 @@ class SessionEncoderConfig:
         if not 0 < config.train_ratio < config.train_ratio + config.valid_ratio <= 1:
             raise ValueError("split ratios must satisfy 0 < train < train + valid <= 1")
         if config.window < 1 or config.batch_size < 2 or config.temperature <= 0:
-            raise ValueError("window >= 1, batch_size >= 2 and temperature > 0 are required")
+            raise ValueError(
+                "window >= 1, batch_size >= 2 and temperature > 0 are required"
+            )
         return config
 
 
@@ -106,18 +110,29 @@ class SessionEncoderConfig:
 class SessionGRU(nn.Module):
     """CLIP click vectors [B, T, D] -> predicted next-click vectors [B, T, D] (unit norm)."""
 
-    def __init__(self, dim: int, hidden_size: int, num_layers: int = 1, dropout: float = 0.0) -> None:
+    def __init__(
+        self, dim: int, hidden_size: int, num_layers: int = 1, dropout: float = 0.0
+    ) -> None:
         super().__init__()
-        self.inp = nn.Sequential(nn.Linear(dim, hidden_size), nn.GELU(), nn.Dropout(dropout))
-        self.gru = nn.GRU(hidden_size, hidden_size, num_layers, batch_first=True,
-                          dropout=dropout if num_layers > 1 else 0.0)
+        self.inp = nn.Sequential(
+            nn.Linear(dim, hidden_size), nn.GELU(), nn.Dropout(dropout)
+        )
+        self.gru = nn.GRU(
+            hidden_size,
+            hidden_size,
+            num_layers,
+            batch_first=True,
+            dropout=dropout if num_layers > 1 else 0.0,
+        )
         self.out = nn.Linear(hidden_size, dim)
 
     def forward(self, x: torch.Tensor, lengths: torch.Tensor) -> torch.Tensor:
-        packed = pack_padded_sequence(self.inp(x), lengths.cpu(), batch_first=True,
-                                      enforce_sorted=False)
-        hidden, _ = pad_packed_sequence(self.gru(packed)[0], batch_first=True,
-                                        total_length=x.size(1))
+        packed = pack_padded_sequence(
+            self.inp(x), lengths.cpu(), batch_first=True, enforce_sorted=False
+        )
+        hidden, _ = pad_packed_sequence(
+            self.gru(packed)[0], batch_first=True, total_length=x.size(1)
+        )
         # residual from the latest click: the GRU learns the shift from it
         return nn.functional.normalize(self.out(hidden) + x, dim=-1)
 
@@ -125,27 +140,40 @@ class SessionGRU(nn.Module):
 class SessionEncoder:
     """Inference wrapper used by the re-ranker."""
 
-    def __init__(self, model: SessionGRU, vectors: np.ndarray, rows: Mapping[str, int],
-                 window: int) -> None:
+    def __init__(
+        self,
+        model: SessionGRU,
+        vectors: np.ndarray,
+        rows: Mapping[str, int],
+        window: int,
+    ) -> None:
         self.model = model.eval()
         self.vectors = vectors
         self.rows = rows
         self.window = window
 
     @classmethod
-    def load(cls, path: Path, vectors: np.ndarray, rows: Mapping[str, int]) -> "SessionEncoder":
+    def load(
+        cls, path: Path, vectors: np.ndarray, rows: Mapping[str, int]
+    ) -> SessionEncoder:
         state = torch.load(path, map_location="cpu", weights_only=True)
         hp = state["hparams"]
         if int(hp["dim"]) != vectors.shape[1]:
-            raise ValueError(f"Encoder dim {hp['dim']} != item vector dim {vectors.shape[1]}")
-        model = SessionGRU(int(hp["dim"]), int(hp["hidden_size"]), int(hp["num_layers"]),
-                           float(hp["dropout"]))
+            raise ValueError(
+                f"Encoder dim {hp['dim']} != item vector dim {vectors.shape[1]}"
+            )
+        model = SessionGRU(
+            int(hp["dim"]),
+            int(hp["hidden_size"]),
+            int(hp["num_layers"]),
+            float(hp["dropout"]),
+        )
         model.load_state_dict(state["model"])
         return cls(model, vectors, rows, int(hp["window"]))
 
     def encode(self, clicks: Sequence[str]) -> np.ndarray | None:
         """clicks: product ids, oldest -> newest. None when no click has a vector."""
-        sequence = to_rows(clicks, self.rows)[-self.window:]
+        sequence = to_rows(clicks, self.rows)[-self.window :]
         if not sequence:
             return None
         return self.encode_rows([sequence])[0]
@@ -153,7 +181,7 @@ class SessionEncoder:
     @torch.no_grad()
     def encode_rows(self, sequences: Sequence[Sequence[int]]) -> np.ndarray:
         """Batch encode non-empty row sequences -> [N, D] unit vectors (last step)."""
-        x, lengths = _pad(self.vectors, [list(s)[-self.window:] for s in sequences])
+        x, lengths = _pad(self.vectors, [list(s)[-self.window :] for s in sequences])
         out = self.model(x, lengths)
         last = out[torch.arange(len(sequences)), lengths - 1]
         return last.numpy().astype("float32")
@@ -171,13 +199,21 @@ def to_rows(clicks: Iterable[str], rows: Mapping[str, int]) -> list[int]:
     return result
 
 
-def load_sessions(config: SessionEncoderConfig, rows: Mapping[str, int]) -> tuple[list[list[int]], list[list[int]]]:
+def load_sessions(
+    config: SessionEncoderConfig, rows: Mapping[str, int]
+) -> tuple[list[list[int]], list[list[int]]]:
     """Train and valid sessions as vector-row sequences, using the time split on all rows."""
     with config.events_path.open(encoding="utf-8-sig", newline="") as handle:
-        events = [(r[config.timestamp_column], r[config.session_column],
-                   r[config.event_type_column], r.get(config.product_id_column) or "")
-                  for r in csv.DictReader(handle)]
-    order = sorted(range(len(events)), key=lambda i: events[i][0])   # stable
+        events = [
+            (
+                r[config.timestamp_column],
+                r[config.session_column],
+                r[config.event_type_column],
+                r.get(config.product_id_column) or "",
+            )
+            for r in csv.DictReader(handle)
+        ]
+    order = sorted(range(len(events)), key=lambda i: events[i][0])  # stable
     a = int(len(events) * config.train_ratio)
     b = int(len(events) * (config.train_ratio + config.valid_ratio))
     clicks = set(config.click_events)
@@ -193,16 +229,22 @@ def load_sessions(config: SessionEncoderConfig, rows: Mapping[str, int]) -> tupl
     return sessions(order[:a]), sessions(order[a:b])
 
 
-def _pad(vectors: np.ndarray, sequences: Sequence[Sequence[int]]) -> tuple[torch.Tensor, torch.Tensor]:
+def _pad(
+    vectors: np.ndarray, sequences: Sequence[Sequence[int]]
+) -> tuple[torch.Tensor, torch.Tensor]:
     lengths = torch.tensor([len(s) for s in sequences], dtype=torch.long)
     x = torch.zeros(len(sequences), int(lengths.max()), vectors.shape[1])
     for i, seq in enumerate(sequences):
-        x[i, :len(seq)] = torch.from_numpy(vectors[list(seq)])
+        x[i, : len(seq)] = torch.from_numpy(vectors[list(seq)])
     return x, lengths
 
 
-def info_nce(pred: torch.Tensor, target_rows: torch.Tensor, target_vecs: torch.Tensor,
-             temperature: float) -> torch.Tensor:
+def info_nce(
+    pred: torch.Tensor,
+    target_rows: torch.Tensor,
+    target_vecs: torch.Tensor,
+    temperature: float,
+) -> torch.Tensor:
     """In-batch softmax; other positions holding the same item are not negatives."""
     logits = pred @ target_vecs.T / temperature
     same = target_rows[:, None] == target_rows[None, :]
@@ -224,8 +266,10 @@ def train(config: SessionEncoderConfig) -> dict[str, Any]:
     if config.max_sessions and len(train_sessions) > config.max_sessions:
         train_sessions = rng.sample(train_sessions, config.max_sessions)
     # input = clicks[:-1], target = clicks[1:]; long sessions keep their latest window
-    samples = [s[-(config.window + 1):] for s in train_sessions]
-    model = SessionGRU(vectors.shape[1], config.hidden_size, config.num_layers, config.dropout)
+    samples = [s[-(config.window + 1) :] for s in train_sessions]
+    model = SessionGRU(
+        vectors.shape[1], config.hidden_size, config.num_layers, config.dropout
+    )
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
     table = torch.from_numpy(vectors)
     history = []
@@ -235,7 +279,7 @@ def train(config: SessionEncoderConfig) -> dict[str, Any]:
         rng.shuffle(samples)
         total, steps = 0.0, 0
         for start in range(0, len(samples), config.batch_size):
-            batch = samples[start:start + config.batch_size]
+            batch = samples[start : start + config.batch_size]
             x, lengths = _pad(vectors, [s[:-1] for s in batch])
             pred = model(x, lengths)
             mask = torch.arange(x.size(1))[None, :] < lengths[:, None]
@@ -247,14 +291,26 @@ def train(config: SessionEncoderConfig) -> dict[str, Any]:
             optimizer.step()
             total, steps = total + loss.item(), steps + 1
         history.append({"epoch": epoch, "loss": round(total / max(steps, 1), 4)})
-        print(f"[session_encoder] epoch {epoch}/{config.epochs} loss={history[-1]['loss']}", flush=True)
+        print(
+            f"[session_encoder] epoch {epoch}/{config.epochs} loss={history[-1]['loss']}",
+            flush=True,
+        )
     config.model_path.parent.mkdir(parents=True, exist_ok=True)
-    hparams = {"dim": vectors.shape[1], "hidden_size": config.hidden_size,
-               "num_layers": config.num_layers, "dropout": config.dropout, "window": config.window}
+    hparams = {
+        "dim": vectors.shape[1],
+        "hidden_size": config.hidden_size,
+        "num_layers": config.num_layers,
+        "dropout": config.dropout,
+        "window": config.window,
+    }
     torch.save({"model": model.state_dict(), "hparams": hparams}, config.model_path)
-    return {"train_sessions": len(samples), "epochs": history, "hparams": hparams,
-            "train_seconds": round(time.perf_counter() - started, 1),
-            "model_path": str(config.model_path)}
+    return {
+        "train_sessions": len(samples),
+        "epochs": history,
+        "hparams": hparams,
+        "train_seconds": round(time.perf_counter() - started, 1),
+        "model_path": str(config.model_path),
+    }
 
 
 def weighted_average(vectors: np.ndarray, sequence: Sequence[int]) -> np.ndarray:
@@ -279,11 +335,16 @@ def evaluate(config: SessionEncoderConfig) -> dict[str, Any]:
     _, valid = load_sessions(config, rows)
     rng = random.Random(config.random_seed)
     sample = rng.sample(valid, min(config.eval_sessions, len(valid)))
-    prefixes = [s[:-1][-encoder.window:] for s in sample]
+    prefixes = [s[:-1][-encoder.window :] for s in sample]
     targets = [s[-1] for s in sample]
     with config.products_path.open(encoding="utf-8-sig", newline="") as handle:
-        by_id = {r[config.item_id_column]: r[config.category_column] for r in csv.DictReader(handle)}
-    row_category = np.array([by_id.get(pid, "") for pid in sorted(rows, key=rows.get)], dtype=object)
+        by_id = {
+            r[config.item_id_column]: r[config.category_column]
+            for r in csv.DictReader(handle)
+        }
+    row_category = np.array(
+        [by_id.get(pid, "") for pid in sorted(rows, key=rows.get)], dtype=object
+    )
     queries = {
         "gru_session_encoder": encoder.encode_rows(prefixes),
         "weighted_average": np.stack([weighted_average(vectors, p) for p in prefixes]),
@@ -293,50 +354,69 @@ def evaluate(config: SessionEncoderConfig) -> dict[str, Any]:
     results = {}
     for name, q in queries.items():
         hits, rr, cat_share, cat_hit = [], [], [], []
-        for start in range(0, len(q), 256):                 # exact search over all items
-            scores = q[start:start + 256] @ vectors.T
+        for start in range(0, len(q), 256):  # exact search over all items
+            scores = q[start : start + 256] @ vectors.T
             top = np.argpartition(-scores, k, axis=1)[:, :k]
             order = np.take_along_axis(scores, top, 1).argsort(axis=1)[:, ::-1]
             top = np.take_along_axis(top, order, 1)
-            for ranked, target in zip(top, targets[start:start + 256]):
+            for ranked, target in zip(top, targets[start : start + 256]):
                 ranked_ids = [int(r) for r in ranked]
                 hits.append(hit_rate_at_k(ranked_ids, {target}, k))
                 rr.append(reciprocal_rank_at_k(ranked_ids, {target}, k))
                 same = row_category[ranked] == row_category[target]
                 cat_share.append(float(same.mean()))
                 cat_hit.append(float(same.any()))
-        results[name] = {f"hit_rate_at_{k}": round(float(np.mean(hits)), 4),
-                         f"mrr_at_{k}": round(float(np.mean(rr)), 4),
-                         f"category_precision_at_{k}": round(float(np.mean(cat_share)), 4),
-                         f"category_hit_rate_at_{k}": round(float(np.mean(cat_hit)), 4)}
+        results[name] = {
+            f"hit_rate_at_{k}": round(float(np.mean(hits)), 4),
+            f"mrr_at_{k}": round(float(np.mean(rr)), 4),
+            f"category_precision_at_{k}": round(float(np.mean(cat_share)), 4),
+            f"category_hit_rate_at_{k}": round(float(np.mean(cat_hit)), 4),
+        }
     started = time.perf_counter()
     for p in prefixes[:200]:
         encoder.encode_rows([p])
     latency = (time.perf_counter() - started) / min(200, len(prefixes)) * 1000
-    return {"task": "next click in valid-split sessions (exact search over all CLIP items)",
-            "sessions": len(sample), "k": k, "results": results,
-            "encode_ms_mean_single": round(latency, 3)}
+    return {
+        "task": "next click in valid-split sessions (exact search over all CLIP items)",
+        "sessions": len(sample),
+        "k": k,
+        "results": results,
+        "encode_ms_mean_single": round(latency, 3),
+    }
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__,
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("action", choices=["train", "evaluate", "all"])
-    parser.add_argument("--config", type=Path, default=Path("config/session_encoder.yaml"))
+    parser.add_argument(
+        "--config", type=Path, default=Path("config/session_encoder.yaml")
+    )
     args = parser.parse_args()
     config = SessionEncoderConfig.from_yaml(args.config)
-    report: dict[str, Any] = {"config": {k: str(v) if isinstance(v, Path) else v
-                                         for k, v in asdict(config).items()}}
+    report: dict[str, Any] = {
+        "config": {
+            k: str(v) if isinstance(v, Path) else v for k, v in asdict(config).items()
+        }
+    }
     if config.report_path.is_file():
-        report.update({k: v for k, v in json.loads(config.report_path.read_text("utf-8")).items()
-                       if k in ("training", "evaluation")})
+        report.update(
+            {
+                k: v
+                for k, v in json.loads(config.report_path.read_text("utf-8")).items()
+                if k in ("training", "evaluation")
+            }
+        )
     if args.action in ("train", "all"):
         report["training"] = train(config)
     if args.action in ("evaluate", "all"):
         report["evaluation"] = evaluate(config)
         print(json.dumps(report["evaluation"], indent=2), flush=True)
     config.report_path.parent.mkdir(parents=True, exist_ok=True)
-    config.report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), "utf-8")
+    config.report_path.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2), "utf-8"
+    )
 
 
 if __name__ == "__main__":
