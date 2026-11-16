@@ -22,9 +22,14 @@ from .bandit import CategoryBandit
 
 
 class BanditStore:
-    def __init__(self, backend: str = "json", path: Path | None = None,
-                 redis_url: str | None = None, key: str = "stage3:bandit",
-                 client: Any = None) -> None:
+    def __init__(
+        self,
+        backend: str = "json",
+        path: Path | None = None,
+        redis_url: str | None = None,
+        key: str = "stage3:bandit",
+        client: Any = None,
+    ) -> None:
         if backend not in ("json", "redis", "none"):
             raise ValueError("bandit store backend must be json, redis or none")
         if backend == "json" and path is None:
@@ -56,8 +61,10 @@ class BanditStore:
 
     def _read(self) -> tuple[dict[str, Any], dict[str, Any]]:
         if self.backend == "redis":
-            return (self.client.hgetall(f"{self.key}:pulls"),
-                    self.client.hgetall(f"{self.key}:rewards"))
+            return (
+                self.client.hgetall(f"{self.key}:pulls"),
+                self.client.hgetall(f"{self.key}:rewards"),
+            )
         if self.backend == "json" and self.path and self.path.is_file():
             state = json.loads(self.path.read_text(encoding="utf-8"))
             return state.get("pulls", {}), state.get("rewards", {})
@@ -72,7 +79,7 @@ class BanditStore:
             pipe.hincrby(f"{self.key}:pulls", arm, 1)
             pipe.hincrbyfloat(f"{self.key}:rewards", arm, float(reward))
             pipe.execute()
-            self.load_into(bandit)        # pick up feedback recorded by other workers
+            self.load_into(bandit)  # pick up feedback recorded by other workers
         elif self.backend == "json":
             self.save(bandit)
 
@@ -80,7 +87,8 @@ class BanditStore:
         if self.backend != "json" or self.path is None:
             return
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=self.path.parent,
-                                         suffix=".tmp", delete=False) as handle:
+        with tempfile.NamedTemporaryFile(
+            "w", encoding="utf-8", dir=self.path.parent, suffix=".tmp", delete=False
+        ) as handle:
             json.dump(bandit.to_dict(), handle, ensure_ascii=False)
-        os.replace(handle.name, self.path)              # atomic on one filesystem
+        os.replace(handle.name, self.path)  # atomic on one filesystem

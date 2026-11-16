@@ -28,10 +28,10 @@ if TYPE_CHECKING:  # pragma: no cover
 DEFAULT_STRATEGY = "deepfm"
 ENV_VAR = "RANKING_STRATEGY"
 
-_REGISTRY: dict[str, type["RankingStrategy"]] = {}
+_REGISTRY: dict[str, type[RankingStrategy]] = {}
 
 
-def register(cls: type["RankingStrategy"]) -> type["RankingStrategy"]:
+def register(cls: type[RankingStrategy]) -> type[RankingStrategy]:
     _REGISTRY[cls.name] = cls
     return cls
 
@@ -40,17 +40,22 @@ def available() -> list[str]:
     return sorted(_REGISTRY)
 
 
-def get_strategy(name: str) -> "RankingStrategy":
+def get_strategy(name: str) -> RankingStrategy:
     try:
         return _REGISTRY[name]()
     except KeyError:
-        raise ValueError(f"알 수 없는 ranking_strategy '{name}'. 사용 가능: {available()}") from None
+        raise ValueError(
+            f"알 수 없는 ranking_strategy '{name}'. 사용 가능: {available()}"
+        ) from None
 
 
 def resolve_name(raw_config: dict[str, Any], override: str | None = None) -> str:
-    return (override or os.getenv(ENV_VAR)
-            or (raw_config.get("serving") or {}).get("ranking_strategy")
-            or DEFAULT_STRATEGY)
+    return (
+        override
+        or os.getenv(ENV_VAR)
+        or (raw_config.get("serving") or {}).get("ranking_strategy")
+        or DEFAULT_STRATEGY
+    )
 
 
 def _minmax(values: np.ndarray) -> np.ndarray:
@@ -61,8 +66,9 @@ def _minmax(values: np.ndarray) -> np.ndarray:
     return (values - lo) / (hi - lo)
 
 
-def _sorted_pairs(svc: "RecommendationService", rows: np.ndarray,
-                  scores: np.ndarray) -> list[tuple[str, float]]:
+def _sorted_pairs(
+    svc: RecommendationService, rows: np.ndarray, scores: np.ndarray
+) -> list[tuple[str, float]]:
     order = np.argsort(-scores, kind="stable")
     ids = svc.items.ids
     return [(str(ids[rows[i]]), float(scores[i])) for i in order]
@@ -73,8 +79,14 @@ class RankingStrategy(ABC):
     description: str = ""
 
     @abstractmethod
-    def rank(self, svc: "RecommendationService", ctx: "UserContext", rows: np.ndarray,
-             two_tower_scores: np.ndarray, now_ts: float) -> list[tuple[str, float]]:
+    def rank(
+        self,
+        svc: RecommendationService,
+        ctx: UserContext,
+        rows: np.ndarray,
+        two_tower_scores: np.ndarray,
+        now_ts: float,
+    ) -> list[tuple[str, float]]:
         """rows: Stage 1 후보의 item row index. two_tower_scores: 같은 순서의 내적 점수."""
 
 

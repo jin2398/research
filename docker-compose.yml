@@ -72,7 +72,8 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.dashboard
-    image: research-dashboard
+    # dashboard와 같은 태그를 쓰면 병렬 빌드(bake) 시 export가 충돌한다
+    image: research-simulator
     container_name: simulator
     command: ["python", "-m", "src.simulator", "--config", "config/simulator.yaml"]
     environment:

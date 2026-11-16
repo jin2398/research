@@ -3,12 +3,13 @@
 Input is one row per experimental user, NOT raw click event rows:
 user_id,group,converted   (optional: event_date)
 """
+
 from __future__ import annotations
 
 import csv
 import io
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from src.dashboard.ab_test import ABTestResult, analyze_ab_test
@@ -18,12 +19,16 @@ MAX_FILE_BYTES = 8 * 1024 * 1024
 MAX_ROWS = 100_000
 
 
-def summarize_experiment_csv(source: bytes, *, max_rows: int = MAX_ROWS) -> tuple[dict, ABTestResult]:
+def summarize_experiment_csv(
+    source: bytes, *, max_rows: int = MAX_ROWS
+) -> tuple[dict, ABTestResult]:
     """Reject ambiguous/duplicated subjects and malformed conversion flags."""
     if not source:
         raise ValueError("비어 있는 CSV입니다.")
     if len(source) > MAX_FILE_BYTES:
-        raise ValueError("CSV가 너무 큽니다(최대 8MB). 사용자별 요약 데이터를 올려주세요.")
+        raise ValueError(
+            "CSV가 너무 큽니다(최대 8MB). 사용자별 요약 데이터를 올려주세요."
+        )
     try:
         contents = source.decode("utf-8-sig")
     except UnicodeDecodeError as exc:
@@ -41,7 +46,10 @@ def summarize_experiment_csv(source: bytes, *, max_rows: int = MAX_ROWS) -> tupl
     reader.fieldnames = fields  # Allow harmless spaces around CSV header names.
 
     users: set[str] = set()
-    groups = {"control": {"users": 0, "converted": 0}, "treatment": {"users": 0, "converted": 0}}
+    groups = {
+        "control": {"users": 0, "converted": 0},
+        "treatment": {"users": 0, "converted": 0},
+    }
     rows = 0
     for line, record in enumerate(reader, start=2):
         rows += 1
@@ -55,7 +63,9 @@ def summarize_experiment_csv(source: bytes, *, max_rows: int = MAX_ROWS) -> tupl
         if not user_id:
             raise ValueError(f"{line}행: user_id가 비어 있습니다.")
         if user_id in users:
-            raise ValueError(f"{line}행: user_id가 중복되었습니다. 사용자별 1행만 사용하세요.")
+            raise ValueError(
+                f"{line}행: user_id가 중복되었습니다. 사용자별 1행만 사용하세요."
+            )
         if group not in groups:
             raise ValueError(f"{line}행: group은 control 또는 treatment여야 합니다.")
         if converted not in {"0", "1"}:
@@ -70,8 +80,10 @@ def summarize_experiment_csv(source: bytes, *, max_rows: int = MAX_ROWS) -> tupl
         raise ValueError("Control과 Treatment 양쪽 그룹에 최소 1명씩 필요합니다.")
 
     result = analyze_ab_test(
-        groups["control"]["users"], groups["control"]["converted"],
-        groups["treatment"]["users"], groups["treatment"]["converted"],
+        groups["control"]["users"],
+        groups["control"]["converted"],
+        groups["treatment"]["users"],
+        groups["treatment"]["converted"],
     )
     return {"row_count": rows, "groups": groups}, result
 
@@ -84,13 +96,21 @@ def check_normal_approximation(summary: dict) -> bool:
     )
 
 
-def make_report(summary: dict, result: ABTestResult, *, data_source: str, experimental_design_verified: bool) -> dict[str, Any]:
+def make_report(
+    summary: dict,
+    result: ABTestResult,
+    *,
+    data_source: str,
+    experimental_design_verified: bool,
+) -> dict[str, Any]:
     """`experimental_design_verified` is supplied by the experiment owner, not inferred."""
     return {
         "title": "RE:SEARCH A/B 테스트 분석",
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "generated_at_utc": datetime.now(UTC).isoformat(timespec="seconds"),
         "source": data_source,
-        "status": "실험 설계 확인(사용자 선언)" if experimental_design_verified else "시뮬레이션 또는 미검증",
+        "status": "실험 설계 확인(사용자 선언)"
+        if experimental_design_verified
+        else "시뮬레이션 또는 미검증",
         "randomization_verified_independently": False,
         "sample_counts": summary,
         "results": result.to_dict(),
@@ -105,7 +125,11 @@ def make_report(summary: dict, result: ABTestResult, *, data_source: str, experi
 def report_markdown(report: dict[str, Any]) -> str:
     r = report["results"]
     g = report["sample_counts"]["groups"]
-    lift = "정의되지 않음 (Control CVR 0%)" if r["lift_pct"] is None else f"{r['lift_pct']:+.2f}%"
+    lift = (
+        "정의되지 않음 (Control CVR 0%)"
+        if r["lift_pct"] is None
+        else f"{r['lift_pct']:+.2f}%"
+    )
     return (
         "# RE:SEARCH A/B 테스트 결과 리포트\n\n"
         f"- 생성 시각 (UTC): {report['generated_at_utc']}\n"

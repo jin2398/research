@@ -42,13 +42,17 @@ class SimulatorConfig:
     personas: tuple[Persona, ...]
 
     @classmethod
-    def from_yaml(cls, path: Path | str) -> "SimulatorConfig":
+    def from_yaml(cls, path: Path | str) -> SimulatorConfig:
         raw: dict[str, Any] = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
         session = raw["session"]
-        personas = tuple(Persona(name=str(name), **{k: v for k, v in values.items()})
-                         for name, values in raw["personas"].items())
+        personas = tuple(
+            Persona(name=str(name), **{k: v for k, v in values.items()})
+            for name, values in raw["personas"].items()
+        )
         config = cls(
-            api_base_url=(os.getenv("SIMULATOR_API_URL") or raw["api_base_url"]).rstrip("/"),
+            api_base_url=(os.getenv("SIMULATOR_API_URL") or raw["api_base_url"]).rstrip(
+                "/"
+            ),
             send_to_api=bool(raw.get("send_to_api", True)),
             catalog_path=Path(raw["data"]["catalog_path"]),
             products_path=Path(raw["data"]["products_path"]),
@@ -56,7 +60,9 @@ class SimulatorConfig:
             users=int(raw["users"]),
             user_id_prefix=str(raw["user_id_prefix"]),
             events_per_second=float(raw["events_per_second"]),
-            max_events=None if raw.get("max_events") is None else int(raw["max_events"]),
+            max_events=None
+            if raw.get("max_events") is None
+            else int(raw["max_events"]),
             random_seed=int(raw["random_seed"]),
             session_min=int(session["min_events"]),
             session_max=int(session["max_events"]),
@@ -75,7 +81,9 @@ class SimulatorConfig:
         if abs(total - 1.0) > 1e-6:
             raise ValueError(f"페르소나 ratio 합계가 1이 아닙니다: {total:.3f}")
         if not self.categories or min(self.categories.values()) < 0:
-            raise ValueError("categories는 비어 있지 않고 가중치가 0 이상이어야 합니다.")
+            raise ValueError(
+                "categories는 비어 있지 않고 가중치가 0 이상이어야 합니다."
+            )
         if not 1 <= self.session_min <= self.session_max:
             raise ValueError("session.min_events ≤ max_events 여야 합니다.")
         if self.users < 1:

@@ -1,4 +1,5 @@
 """Design-system CSS for the CodiSay Streamlit showcase."""
+
 from __future__ import annotations
 
 import base64
@@ -6,9 +7,10 @@ from pathlib import Path
 
 
 def stylesheet() -> str:
-    hero = Path(__file__).resolve().parent / 'assets/hero.jpg'
-    data = base64.b64encode(hero.read_bytes()).decode('ascii')
-    return '''
+    hero = Path(__file__).resolve().parent / "assets/hero.jpg"
+    data = base64.b64encode(hero.read_bytes()).decode("ascii")
+    return (
+        """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
 :root {--ink:#2c2827;--muted:#79716c;--coffee:#4b403b;--beige:#eae2db;--canvas:#f7f5f3;--stroke:#eae5e1;}
@@ -37,7 +39,9 @@ html,body,[data-testid="stAppViewContainer"],button,input {font-family: 'DM Sans
 .cs-header-sub {font-size:12px;color:#9a918b;margin-left:17px;border-left:1px solid #ddd2cb;padding-left:14px;font-weight:500}
 .cs-header-side {font-size:12px;color:#7d746e;background:#fff;border:1px solid #ebe6e2;border-radius:999px;padding:8px 12px}
 .cs-hero {position:relative;min-height:236px;border-radius:17px;overflow:hidden;padding:31px 36px;
-background:linear-gradient(90deg,#ece2dc 0%,rgba(239,231,224,.98) 34%,rgba(239,231,224,.24) 64%,rgba(239,231,224,0) 100%),url('data:image/jpeg;base64,'''+data+''') right 46% center/auto 122% no-repeat,#ebe1da;
+background:linear-gradient(90deg,#ece2dc 0%,rgba(239,231,224,.98) 34%,rgba(239,231,224,.24) 64%,rgba(239,231,224,0) 100%),url('data:image/jpeg;base64,"""
+        + data
+        + """) right 46% center/auto 122% no-repeat,#ebe1da;
 box-shadow:0 5px 22px rgba(42,30,20,.045)}
 .cs-hero h1 {font-size:31px!important;font-weight:800;letter-spacing:-1.8px;line-height:1.35;margin:0 0 12px;color:#211d1b}
 .cs-hero p {font-size:12.5px;line-height:1.85;color:#584d47;margin:0 0 18px}
@@ -72,4 +76,5 @@ box-shadow:0 5px 22px rgba(42,30,20,.045)}
 [data-testid="stTabs"] button p {font-size:13px}
 @media(max-width:1000px){.cs-hero {background-size:auto 118%}.cs-header-sub {display:none}.block-container {padding:1.2rem .8rem 3rem}}
 </style>
-'''
+"""
+    )
